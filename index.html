@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EDM Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.4.0/dist/tabler-icons.min.css" />
+<link rel="stylesheet" href="style.css" />
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i class="ti ti-layout-dashboard"></i></div>
+      <div><div class="sidebar-logo-text">EDM Dashboard</div><div class="sidebar-logo-sub">Enterprise Delivery</div></div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <button class="nav-item active" data-section="dashboard"    onclick="navigate('dashboard',this)"><i class="ti ti-home"></i> Dashboard</button>
+      <div class="nav-section-label">Manage</div>
+      <button class="nav-item" data-section="portfolio"    onclick="navigate('portfolio',this)"><i class="ti ti-layout-grid"></i> Portfolio</button>
+      <button class="nav-item" data-section="stakeholders" onclick="navigate('stakeholders',this)"><i class="ti ti-users"></i> Stakeholders</button>
+      <button class="nav-item" data-section="capacity"     onclick="navigate('capacity',this)"><i class="ti ti-chart-bar"></i> Capacity</button>
+      <button class="nav-item" data-section="escalations"  onclick="navigate('escalations',this)"><i class="ti ti-alert-triangle"></i> Escalations</button>
+      <button class="nav-item" data-section="risks"        onclick="navigate('risks',this)"><i class="ti ti-shield-exclamation"></i> Risk Register</button>
+      <button class="nav-item" data-section="decisions"    onclick="navigate('decisions',this)"><i class="ti ti-note"></i> Decision Log</button>
+      <div class="nav-section-label">Tools</div>
+      <button class="nav-item" data-section="ai"           onclick="navigate('ai',this)"><i class="ti ti-sparkles"></i> AI Assist</button>
+      <button class="nav-item" data-section="jira"         onclick="navigate('jira',this)"><i class="ti ti-brand-jira"></i> JIRA <span id="jira-nav-badge" class="nav-badge" style="display:none">Live</span></button>
+      <button class="nav-item" data-section="integrations" onclick="navigate('integrations',this)"><i class="ti ti-plug"></i> Integrations</button>
+    </div>
+    <div class="sidebar-footer">
+      <button class="btn small" onclick="exportData()"><i class="ti ti-download"></i> Export</button>
+      <button class="btn small" onclick="importData()"><i class="ti ti-upload"></i> Import</button>
+      <button class="btn small danger" onclick="resetData()"><i class="ti ti-refresh"></i> Reset</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- AI CONFIG BAR -->
+    <div class="ai-config-bar">
+      <label>Preset:</label>
+      <select onchange="applyPreset(this.value)" style="width:140px">
+        <option value="">-- quick fill --</option>
+        <option value="openai">OpenAI</option>
+        <option value="anthropic">Anthropic</option>
+        <option value="ollama">Ollama</option>
+        <option value="groq">Groq</option>
+        <option value="openrouter">OpenRouter</option>
+      </select>
+      <label>URL:</label><input id="ai-url" class="url-input" type="text" placeholder="https://api.openai.com/v1" />
+      <label>Key:</label><input id="ai-key" class="key-input" type="password" placeholder="API key..." />
+      <label>Model:</label><input id="ai-model" class="model-input" type="text" placeholder="gpt-4o" />
+      <button class="ai-sm-btn blue" onclick="saveAIConfig()">Save</button>
+      <button class="ai-sm-btn" onclick="clearAIConfig()">Clear</button>
+      <span id="ai-status" class="ai-status off"><span class="ai-dot"></span>Not configured</span>
+    </div>
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <span class="topbar-title" id="topbar-title">Executive Dashboard</span>
+      <div class="topbar-right">
+        <button class="btn primary" onclick="generateWeeklyDigest()"><i class="ti ti-sparkles"></i> Weekly Digest</button>
+        <button class="btn" onclick="openAddProject()"><i class="ti ti-plus"></i> Add Project</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="section active" id="section-dashboard">
+        <div class="dash-summary-grid">
+          <div class="dash-stat"><div class="dash-stat-val blue" id="ds-projects">0</div><div class="dash-stat-label">Projects</div></div>
+          <div class="dash-stat"><div class="dash-stat-val green" id="ds-ontrack">0</div><div class="dash-stat-label">On Track</div></div>
+          <div class="dash-stat"><div class="dash-stat-val amber" id="ds-atrisk">0</div><div class="dash-stat-label">At Risk</div></div>
+          <div class="dash-stat"><div class="dash-stat-val red" id="ds-critical">0</div><div class="dash-stat-label">Critical</div></div>
+          <div class="dash-stat"><div class="dash-stat-val red" id="ds-escalations">0</div><div class="dash-stat-label">Open Escalations</div></div>
+          <div class="dash-stat"><div class="dash-stat-val red" id="ds-risks">0</div><div class="dash-stat-label">Red Risks</div></div>
+        </div>
+
+        <div class="ai-output-panel" id="digest-panel">
+          <div class="ai-output-label"><i class="ti ti-sparkles"></i> Weekly Executive Digest</div>
+          <div class="ai-output-text" id="digest-text"></div>
+          <div class="ai-output-actions">
+            <button class="btn small" onclick="copyOutput('digest-text')"><i class="ti ti-copy"></i> Copy</button>
+            <button class="btn small primary" onclick="exportToPptx('digest-panel')"><i class="ti ti-presentation"></i> PowerPoint</button>
+            <button class="btn small" onclick="sendReportSlack('digest-panel')"><i class="ti ti-brand-slack"></i> Slack</button>
+            <button class="btn small" onclick="sendReportTeams('digest-panel')"><i class="ti ti-brand-teams"></i> Teams</button>
+            <button class="btn small" onclick="emailReport('digest-panel')"><i class="ti ti-mail"></i> Email</button>
+            <button class="btn small" onclick="document.getElementById('digest-panel').style.display='none'">Dismiss</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Portfolio RAG Status</span></div>
+          <div class="dash-rag-grid" id="dash-rag-grid"></div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Open Escalations</span><button class="btn small" onclick="navigate('escalations',document.querySelector('[data-section=escalations]'))">View all</button></div>
+            <table><thead><tr><th>Issue</th><th>Project</th><th>Severity</th><th>Status</th><th>Days</th></tr></thead>
+            <tbody id="dash-esc-tbody"></tbody></table>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Top Risks</span><button class="btn small" onclick="navigate('risks',document.querySelector('[data-section=risks]'))">View all</button></div>
+            <table><thead><tr><th>Risk</th><th>Project</th><th>Prob</th><th>Impact</th><th>RAG</th></tr></thead>
+            <tbody id="dash-risk-tbody"></tbody></table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Recent Decisions</span><button class="btn small" onclick="navigate('decisions',document.querySelector('[data-section=decisions]'))">View all</button></div>
+          <table><thead><tr><th>Decision</th><th>Project</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody id="dash-dec-tbody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- PORTFOLIO -->
+      <div class="section" id="section-portfolio">
+        <div class="metrics">
+          <div class="metric-card"><div class="metric-label">Total</div><div class="metric-value blue" id="m-total">0</div></div>
+          <div class="metric-card"><div class="metric-label">On Track</div><div class="metric-value green" id="m-ontrack">0</div></div>
+          <div class="metric-card"><div class="metric-label">At Risk</div><div class="metric-value amber" id="m-atrisk">0</div></div>
+          <div class="metric-card"><div class="metric-label">Critical</div><div class="metric-value red" id="m-critical">0</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Projects</span>
+            <div class="card-actions">
+              <select class="select-mini" onchange="filterProjects(this.value)"><option value="all">All</option><option value="On Track">On Track</option><option value="At Risk">At Risk</option><option value="Critical">Critical</option><option value="Completed">Completed</option></select>
+              <button class="btn small" onclick="openAddProject()"><i class="ti ti-plus"></i> Add</button>
+            </div>
+          </div>
+          <table><thead><tr><th>Project</th><th>Owner</th><th>Status</th><th>Progress</th><th>Due</th><th></th></tr></thead>
+          <tbody id="projects-tbody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- STAKEHOLDERS -->
+      <div class="section" id="section-stakeholders">
+        <div class="card"><div class="card-header"><span class="card-title">Stakeholder Register</span><button class="btn small" onclick="openAddStakeholder()"><i class="ti ti-plus"></i> Add</button></div>
+        <div id="stakeholders-list"></div></div>
+      </div>
+
+      <!-- CAPACITY -->
+      <div class="section" id="section-capacity">
+        <div class="metrics">
+          <div class="metric-card"><div class="metric-label">Members</div><div class="metric-value blue" id="cm-members">0</div></div>
+          <div class="metric-card"><div class="metric-label">Avg Allocation</div><div class="metric-value amber" id="cm-avg">0%</div></div>
+          <div class="metric-card"><div class="metric-label">Overallocated</div><div class="metric-value red" id="cm-over">0</div></div>
+          <div class="metric-card"><div class="metric-label">Available</div><div class="metric-value green" id="cm-avail">0%</div></div>
+        </div>
+        <div class="card"><div class="card-header"><span class="card-title">Team Capacity</span><button class="btn small" onclick="openAddCapacity()"><i class="ti ti-plus"></i> Add</button></div>
+        <div id="capacity-list"></div></div>
+      </div>
+
+      <!-- ESCALATIONS -->
+      <div class="section" id="section-escalations">
+        <div class="metrics">
+          <div class="metric-card"><div class="metric-label">Open</div><div class="metric-value red" id="em-open">0</div></div>
+          <div class="metric-card"><div class="metric-label">Critical</div><div class="metric-value red" id="em-critical">0</div></div>
+          <div class="metric-card"><div class="metric-label">In Review</div><div class="metric-value amber" id="em-review">0</div></div>
+          <div class="metric-card"><div class="metric-label">Resolved</div><div class="metric-value green" id="em-resolved">0</div></div>
+        </div>
+        <div class="card"><div class="card-header"><span class="card-title">Escalation Tracker</span><button class="btn small" onclick="openAddEscalation()"><i class="ti ti-plus"></i> Log</button></div>
+        <table><thead><tr><th>Issue</th><th>Project</th><th>Severity</th><th>Owner</th><th>Status</th><th>Days</th><th></th></tr></thead>
+        <tbody id="escalations-tbody"></tbody></table></div>
+      </div>
+
+      <!-- RISK REGISTER -->
+      <div class="section" id="section-risks">
+        <div class="metrics">
+          <div class="metric-card"><div class="metric-label">Total Risks</div><div class="metric-value blue" id="rm-total">0</div></div>
+          <div class="metric-card"><div class="metric-label">Red (Critical)</div><div class="metric-value red" id="rm-red">0</div></div>
+          <div class="metric-card"><div class="metric-label">Amber (High)</div><div class="metric-value amber" id="rm-amber">0</div></div>
+          <div class="metric-card"><div class="metric-label">Open</div><div class="metric-value amber" id="rm-open">0</div></div>
+        </div>
+        <div class="ai-output-panel" id="risk-ai-panel">
+          <div class="ai-output-label"><i class="ti ti-sparkles"></i> AI Risk Analysis</div>
+          <div class="ai-output-text" id="risk-ai-text"></div>
+          <div class="ai-output-actions">
+            <button class="btn small" onclick="copyOutput('risk-ai-text')"><i class="ti ti-copy"></i> Copy</button>
+            <button class="btn small primary" onclick="exportToPptx('risk-ai-panel')"><i class="ti ti-presentation"></i> PowerPoint</button>
+            <button class="btn small" onclick="sendReportSlack('risk-ai-panel')"><i class="ti ti-brand-slack"></i> Slack</button>
+            <button class="btn small" onclick="emailReport('risk-ai-panel')"><i class="ti ti-mail"></i> Email</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Risk Register</span>
+            <div class="card-actions">
+              <select class="select-mini" onchange="renderRisks(this.value)"><option value="all">All</option><option value="red">Red</option><option value="amber">Amber</option><option value="green">Green</option><option value="Open">Open</option><option value="Monitoring">Monitoring</option><option value="Closed">Closed</option></select>
+              <button class="btn small" onclick="aiRiskSummary()"><i class="ti ti-sparkles"></i> AI Summary</button>
+              <button class="btn small" onclick="openAddRisk()"><i class="ti ti-plus"></i> Add Risk</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+          <table><thead><tr><th>Risk</th><th>Project</th><th>Prob</th><th>Impact</th><th>RAG</th><th>Owner</th><th>Mitigation</th><th>Status</th><th></th></tr></thead>
+          <tbody id="risks-tbody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- DECISION LOG -->
+      <div class="section" id="section-decisions">
+        <div class="metrics">
+          <div class="metric-card"><div class="metric-label">Total</div><div class="metric-value blue" id="dm-total">0</div></div>
+          <div class="metric-card"><div class="metric-label">Approved</div><div class="metric-value green" id="dm-approved">0</div></div>
+          <div class="metric-card"><div class="metric-label">Pending</div><div class="metric-value amber" id="dm-pending">0</div></div>
+          <div class="metric-card"><div class="metric-label">High Impact</div><div class="metric-value red" id="dm-high">0</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Decision Log</span>
+            <div class="card-actions">
+              <select class="select-mini" onchange="renderDecisions(this.value)"><option value="all">All</option><option value="Approved">Approved</option><option value="Pending">Pending</option><option value="Superseded">Superseded</option></select>
+              <button class="btn small" onclick="openAddDecision()"><i class="ti ti-plus"></i> Log Decision</button>
+            </div>
+          </div>
+          <table><thead><tr><th>Decision</th><th>Project</th><th>Owner</th><th>Date</th><th>Rationale</th><th>Impact</th><th>Status</th><th></th></tr></thead>
+          <tbody id="decisions-tbody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- AI ASSIST -->
+      <div class="section" id="section-ai">
+        <div class="tab-bar">
+          <button class="tab ai-tab active" id="tab-status" onclick="switchAITab('status-tab',this)">Status Report</button>
+          <button class="tab ai-tab" id="tab-comms"  onclick="switchAITab('comms-tab',this)">Draft Comms</button>
+          <span style="margin-left:auto;font-size:11px;color:var(--tx3);display:flex;align-items:center;gap:5px">
+            <i class="ti ti-brand-jira" style="color:#0052CC;font-size:13px"></i>
+            JIRA: <span id="jira-ai-indicator" style="color:var(--tx3)">No data</span>
+            <button class="btn small" style="padding:2px 7px;font-size:11px" onclick="navigate('jira',document.querySelector('[data-section=jira]'))">Load</button>
+          </span>
+        </div>
+
+        <div id="status-tab">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Generate Status Report</span></div>
+            <div class="form-grid">
+              <div class="form-group"><label class="form-label">Project</label><select id="ai-project-select" class="form-input"></select></div>
+              <div class="form-group"><label class="form-label">Audience</label><select id="ai-audience" class="form-input"><option>Executive sponsors</option><option>Steering committee</option><option>Project team</option><option>Client / external</option><option>Board</option></select></div>
+              <div class="form-group full"><label class="form-label">Key updates or blockers</label><textarea id="ai-updates" class="form-input" placeholder="e.g. Sprint 4 complete. Vendor API issues delayed integration by 3 days."></textarea></div>
+            </div>
+            <div class="form-actions"><button class="btn primary" onclick="generateStatusReport()"><i class="ti ti-sparkles"></i> Generate Report</button></div>
+            <div class="ai-output-panel" id="status-ai-panel">
+              <div class="ai-output-label"><i class="ti ti-sparkles"></i> Status Report</div>
+              <div class="ai-output-text" id="status-ai-text"></div>
+              <div class="ai-output-actions">
+                <button class="btn small" onclick="copyOutput('status-ai-text')"><i class="ti ti-copy"></i> Copy</button>
+                <button class="btn small primary" onclick="exportToPptx('status-ai-panel')"><i class="ti ti-presentation"></i> PowerPoint</button>
+                <button class="btn small" onclick="sendReportSlack('status-ai-panel')"><i class="ti ti-brand-slack"></i> Slack</button>
+                <button class="btn small" onclick="sendReportTeams('status-ai-panel')"><i class="ti ti-brand-teams"></i> Teams</button>
+                <button class="btn small" onclick="emailReport('status-ai-panel')"><i class="ti ti-mail"></i> Email</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="comms-tab" style="display:none">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Draft Stakeholder Communication</span></div>
+            <div class="form-grid">
+              <div class="form-group"><label class="form-label">Type</label><select id="comms-type" class="form-input"><option>Escalation notice</option><option>Weekly update</option><option>Risk alert</option><option>Milestone reached</option><option>Delay notification</option><option>Executive briefing</option><option>Kickoff announcement</option><option>Project closure</option></select></div>
+              <div class="form-group"><label class="form-label">Tone</label><select id="comms-tone" class="form-input"><option>Direct and factual</option><option>Diplomatic but firm</option><option>Reassuring</option><option>Urgent</option><option>Celebratory</option></select></div>
+              <div class="form-group full"><label class="form-label">Recipients</label><input id="comms-to" class="form-input" type="text" placeholder="e.g. VP Engineering, PMO Director" /></div>
+              <div class="form-group full"><label class="form-label">Context and key points</label><textarea id="comms-context" class="form-input" placeholder="e.g. Integration delayed 1 week. Root cause: vendor instability. Mitigation: parallel path started."></textarea></div>
+            </div>
+            <div class="form-actions"><button class="btn primary" onclick="generateComms()"><i class="ti ti-sparkles"></i> Draft Communication</button></div>
+            <div class="ai-output-panel" id="comms-ai-panel">
+              <div class="ai-output-label"><i class="ti ti-sparkles"></i> Drafted Communication</div>
+              <div class="ai-output-text" id="comms-ai-text"></div>
+              <div class="ai-output-actions">
+                <button class="btn small" onclick="copyOutput('comms-ai-text')"><i class="ti ti-copy"></i> Copy</button>
+                <button class="btn small" onclick="sendReportSlack('comms-ai-panel')"><i class="ti ti-brand-slack"></i> Slack</button>
+                <button class="btn small" onclick="sendReportTeams('comms-ai-panel')"><i class="ti ti-brand-teams"></i> Teams</button>
+                <button class="btn small" onclick="emailReport('comms-ai-panel')"><i class="ti ti-mail"></i> Email</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- JIRA -->
+      <div class="section" id="section-jira">
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-header"><span class="card-title"><i class="ti ti-brand-jira" style="color:#0052CC;margin-right:5px"></i>JIRA Configuration</span><span id="jira-connection-status" class="int-status off">Not configured</span></div>
+          <div class="form-grid">
+            <div class="form-group full"><label class="form-label">Atlassian Base URL</label><input id="jira-url" class="form-input" type="text" placeholder="https://yourcompany.atlassian.net" /><div class="form-hint">Your Atlassian Cloud URL</div></div>
+            <div class="form-group"><label class="form-label">Email</label><input id="jira-email" class="form-input" type="text" placeholder="you@company.com" /></div>
+            <div class="form-group"><label class="form-label">Project Key</label><input id="jira-project" class="form-input" type="text" placeholder="PLAT" /></div>
+            <div class="form-group full"><label class="form-label">API Token</label><input id="jira-token" class="form-input" type="password" placeholder="From id.atlassian.com/manage-profile/security/api-tokens" /></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn primary small" onclick="JIRA.saveConfig()">Save</button>
+            <button id="jira-test-btn" class="btn small" onclick="JIRA.testConnection()">Test Connection</button>
+            <button class="btn small danger" onclick="JIRA.clearConfig()">Clear</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Live Data</span>
+            <div class="card-actions">
+              <button class="btn small primary" onclick="JIRA.pullProjectIssues()"><i class="ti ti-refresh"></i> Open Issues</button>
+              <button class="btn small" onclick="JIRA.pullBlockers()"><i class="ti ti-alert-triangle"></i> Blockers</button>
+              <button class="btn small" onclick="JIRA.pullSprintData()"><i class="ti ti-chart-dots"></i> Sprint</button>
+              <button class="btn small success" onclick="JIRA.populateEscalations()"><i class="ti ti-download"></i> Import to Escalations</button>
+            </div>
+          </div>
+          <div style="margin-bottom:14px"><div style="font-size:12px;font-weight:500;color:var(--tx2);margin-bottom:8px">Active Sprint</div><div id="jira-sprint-panel"><div class="empty-state" style="padding:16px 0"><i class="ti ti-chart-dots"></i><p>Click Sprint to load.</p></div></div></div>
+          <div><div style="font-size:12px;font-weight:500;color:var(--tx2);margin-bottom:8px">Issues</div><div id="jira-issues-panel"><div class="empty-state" style="padding:16px 0"><i class="ti ti-list"></i><p>Click Open Issues to load.</p></div></div></div>
+        </div>
+      </div>
+
+      <!-- INTEGRATIONS -->
+      <div class="section" id="section-integrations">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><span class="card-title"><i class="ti ti-brand-slack" style="margin-right:5px"></i>Slack</span><span id="slack-status" class="int-status off">Not configured</span></div>
+            <div class="form-group" style="margin-bottom:12px"><label class="form-label">Incoming Webhook URL</label><input id="slack-webhook" class="form-input" type="text" placeholder="https://hooks.slack.com/services/..." /><div class="form-hint">Create at api.slack.com/apps — Incoming Webhooks</div></div>
+            <button class="btn primary small" onclick="saveIntegrations()">Save</button>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title"><i class="ti ti-brand-teams" style="margin-right:5px"></i>Microsoft Teams</span><span id="teams-status" class="int-status off">Not configured</span></div>
+            <div class="form-group" style="margin-bottom:12px"><label class="form-label">Incoming Webhook URL</label><input id="teams-webhook" class="form-input" type="text" placeholder="https://your-tenant.webhook.office.com/..." /><div class="form-hint">Teams channel settings — Connectors — Incoming Webhook</div></div>
+            <button class="btn primary small" onclick="saveIntegrations()">Save</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title"><i class="ti ti-mail" style="margin-right:5px"></i>Email</span></div>
+          <p style="font-size:13px;color:var(--tx2);line-height:1.6">Email sending uses your default mail client via <code>mailto:</code> links. Click any Email button on a report to open it pre-filled in your email app. For automated SMTP sending, run this app behind a small server or use the Electron desktop version.</p>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<div id="toast"></div>
+
+<!-- PROJECT MODAL -->
+<div class="modal-overlay" id="project-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="project-modal-title">Add Project</span><button class="modal-close" onclick="closeModal('project-modal')"><i class="ti ti-x"></i></button></div>
+    <div class="form-grid">
+      <div class="form-group full"><label class="form-label">Name</label><input id="pf-name" class="form-input" type="text" /></div>
+      <div class="form-group"><label class="form-label">Owner</label><input id="pf-owner" class="form-input" type="text" /></div>
+      <div class="form-group"><label class="form-label">Status</label><select id="pf-status" class="form-input"><option>On Track</option><option>At Risk</option><option>Critical</option><option>Completed</option></select></div>
+      <div class="form-group"><label class="form-label">Progress (%)</label><input id="pf-progress" class="form-input" type="number" min="0" max="100" value="0" /></div>
+      <div class="form-group"><label class="form-label">Due date</label><input id="pf-due" class="form-input" type="date" /></div>
+      <div class="form-group full"><label class="form-label">Notes</label><textarea id="pf-notes" class="form-input"></textarea></div>
+    </div>
+    <div class="form-actions"><button class="btn primary" onclick="saveProject()">Save</button><button class="btn" onclick="closeModal('project-modal')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- STAKEHOLDER MODAL -->
+<div class="modal-overlay" id="stakeholder-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="stk-modal-title">Add Stakeholder</span><button class="modal-close" onclick="closeModal('stakeholder-modal')"><i class="ti ti-x"></i></button></div>
+    <div class="form-grid">
+      <div class="form-group full"><label class="form-label">Name</label><input id="sf-name" class="form-input" type="text" /></div>
+      <div class="form-group full"><label class="form-label">Role</label><input id="sf-role" class="form-input" type="text" /></div>
+      <div class="form-group"><label class="form-label">Influence</label><select id="sf-influence" class="form-input"><option>High</option><option>Medium</option><option>Low</option></select></div>
+      <div class="form-group"><label class="form-label">Engagement</label><select id="sf-engagement" class="form-input"><option>Champion</option><option>Supportive</option><option>Neutral</option><option>Resistant</option></select></div>
+      <div class="form-group full"><label class="form-label">Notes</label><textarea id="sf-notes" class="form-input"></textarea></div>
+    </div>
+    <div class="form-actions"><button class="btn primary" onclick="saveStakeholder()">Save</button><button class="btn" onclick="closeModal('stakeholder-modal')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- CAPACITY MODAL -->
+<div class="modal-overlay" id="capacity-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="cap-modal-title">Add Member</span><button class="modal-close" onclick="closeModal('capacity-modal')"><i class="ti ti-x"></i></button></div>
+    <div class="form-grid">
+      <div class="form-group full"><label class="form-label">Name</label><input id="cf-name" class="form-input" type="text" /></div>
+      <div class="form-group full"><label class="form-label">Projects</label><input id="cf-projects" class="form-input" type="text" /></div>
+      <div class="form-group full"><label class="form-label">Allocation (%)</label><input id="cf-allocation" class="form-input" type="number" min="0" max="200" value="100" /></div>
+    </div>
+    <div class="form-actions"><button class="btn primary" onclick="saveCapacity()">Save</button><button class="btn" onclick="closeModal('capacity-modal')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- ESCALATION MODAL -->
+<div class="modal-overlay" id="escalation-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="esc-modal-title">Log Escalation</span><button class="modal-close" onclick="closeModal('escalation-modal')"><i class="ti ti-x"></i></button></div>
+    <div class="form-grid">
+      <div class="form-group full"><label class="form-label">Issue</label><input id="ef-issue" class="form-input" type="text" /></div>
+      <div class="form-group"><label class="form-label">Project</label><input id="ef-project" class="form-input" type="text" /></div>
+      <div class="form-group"><label class="form-label">Owner</label><input id="ef-owner" class="form-input" type="text" /></div>
+      <div class="form-group"><label class="form-label">Severity</label><select id="ef-severity" class="form-input"><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+      <div class="form-group"><label class="form-label">Status</label><select id="ef-status" class="form-input"><option>Open</option><option>In Review</option><option>Monitoring</option><option>Resolved</option></select></div>
+      <div class="form-group"><label class="form-label">Days open</label><input id="ef-days" class="form-input" type="number" min="0" value="0" /></div>
+      <div class="form-group full"><label class="form-label">Notes</label><textarea id="ef-notes" class="form-input"></textarea></div>
+    </div>
+    <div class="form-actions"><button class="btn primary" onclick="saveEscalation()">Save</button><button class="btn" onclick="closeModal('escalation-modal')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- RISK MODAL -->
+<div class="modal-overlay" id="risk-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="risk-modal-title">Add Risk</span><button class="modal-close" onclick="closeModal('risk-modal')"><i class="ti ti-x"></i></button></div>
+    <div class="form-grid">
+      <div class="form-group full"><label class="form-label">Risk title</label><input id="rf-title" class="form-input" type="text" placeholder="Brief description of the risk" /></div>
+      <div class="form-group"><label class="form-label">Project</label><input id="rf-project" class="form-input" type="text" /></div>
+      <div class="form-group"><label class="form-label">Owner</label><input id="rf-owner" class="form-input" type="text" /></div>
+      <div class="form-group"><label class="form-label">Probability</label><select id="rf-probability" class="form-input"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+      <div class="form-group"><label class="form-label">Impact</label><select id="rf-impact" class="form-input"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+      <div class="form-group"><label class="form-label">Status</label><select id="rf-status" class="form-input"><option>Open</option><option>Monitoring</option><option>Mitigated</option><option>Closed</option></select></div>
+      <div class="form-group"><label class="form-label">Date identified</label><input id="rf-created" class="form-input" type="date" /></div>
+      <div class="form-group full"><label class="form-label">Mitigation plan</label><textarea id="rf-mitigation" class="form-input" placeholder="Steps being taken to reduce or eliminate this risk"></textarea></div>
+      <div class="form-group full"><label class="form-label">Notes</label><textarea id="rf-notes" class="form-input"></textarea></div>
+    </div>
+    <div class="form-actions"><button class="btn primary" onclick="saveRisk()">Save Risk</button><button class="btn" onclick="closeModal('risk-modal')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- DECISION MODAL -->
+<div class="modal-overlay" id="decision-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="dec-modal-title">Log Decision</span><button class="modal-close" onclick="closeModal('decision-modal')"><i class="ti ti-x"></i></button></div>
+    <div class="form-grid">
+      <div class="form-group full"><label class="form-label">Decision</label><input id="df-title" class="form-input" type="text" placeholder="What was decided?" /></div>
+      <div class="form-group"><label class="form-label">Project</label><input id="df-project" class="form-input" type="text" /></div>
+      <div class="form-group"><label class="form-label">Owner / Decision maker</label><input id="df-owner" class="form-input" type="text" /></div>
+      <div class="form-group"><label class="form-label">Date</label><input id="df-date" class="form-input" type="date" /></div>
+      <div class="form-group"><label class="form-label">Impact</label><select id="df-impact" class="form-input"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+      <div class="form-group"><label class="form-label">Status</label><select id="df-status" class="form-input"><option>Pending</option><option>Approved</option><option>Rejected</option><option>Superseded</option></select></div>
+      <div class="form-group full"><label class="form-label">Rationale</label><textarea id="df-rationale" class="form-input" placeholder="Why was this decision made?"></textarea></div>
+      <div class="form-group full"><label class="form-label">Notes</label><textarea id="df-notes" class="form-input"></textarea></div>
+    </div>
+    <div class="form-actions"><button class="btn primary" onclick="saveDecision()">Save Decision</button><button class="btn" onclick="closeModal('decision-modal')">Cancel</button></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="ai.js"></script>
+<script src="app.js"></script>
+<script src="jira.js"></script>
+</body>
+</html>

@@ -222,3 +222,5 @@ textarea.form-input{resize:vertical;min-height:72px}
 
 /* TOAST */
 #toast{position:fixed;bottom:20px;right:20px;background:var(--blue);color:#fff;padding:8px 15px;border-radius:var(--rmd);font-size:12px;font-weight:500;opacity:0;transform:translateY(8px);transition:opacity 0.2s,transform 0.2s;z-index:999;pointer-events:none;max-width:320px}
+.pdf-choice{animation:fadeIn 0.15s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}

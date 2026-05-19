@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.4.0/dist/tabler-icons.min.css" />
 <link rel="stylesheet" href="style.css" />
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </head>
 <body>
 <div class="app">
@@ -88,6 +89,7 @@
           <div class="ai-output-actions">
             <button class="btn small" onclick="copyOutput('digest-text')"><i class="ti ti-copy"></i> Copy</button>
             <button class="btn small primary" onclick="exportToPptx('digest-panel')"><i class="ti ti-presentation"></i> PowerPoint</button>
+            <button class="btn small" onclick="exportPdf('digest-panel')"><i class="ti ti-file-type-pdf"></i> PDF</button>
             <button class="btn small" onclick="sendReportSlack('digest-panel')"><i class="ti ti-brand-slack"></i> Slack</button>
             <button class="btn small" onclick="sendReportTeams('digest-panel')"><i class="ti ti-brand-teams"></i> Teams</button>
             <button class="btn small" onclick="emailReport('digest-panel')"><i class="ti ti-mail"></i> Email</button>
@@ -185,6 +187,7 @@
           <div class="ai-output-actions">
             <button class="btn small" onclick="copyOutput('risk-ai-text')"><i class="ti ti-copy"></i> Copy</button>
             <button class="btn small primary" onclick="exportToPptx('risk-ai-panel')"><i class="ti ti-presentation"></i> PowerPoint</button>
+            <button class="btn small" onclick="exportPdf('risk-ai-panel')"><i class="ti ti-file-type-pdf"></i> PDF</button>
             <button class="btn small" onclick="sendReportSlack('risk-ai-panel')"><i class="ti ti-brand-slack"></i> Slack</button>
             <button class="btn small" onclick="emailReport('risk-ai-panel')"><i class="ti ti-mail"></i> Email</button>
           </div>
@@ -250,6 +253,7 @@
               <div class="ai-output-actions">
                 <button class="btn small" onclick="copyOutput('status-ai-text')"><i class="ti ti-copy"></i> Copy</button>
                 <button class="btn small primary" onclick="exportToPptx('status-ai-panel')"><i class="ti ti-presentation"></i> PowerPoint</button>
+                <button class="btn small" onclick="exportPdf('status-ai-panel')"><i class="ti ti-file-type-pdf"></i> PDF</button>
                 <button class="btn small" onclick="sendReportSlack('status-ai-panel')"><i class="ti ti-brand-slack"></i> Slack</button>
                 <button class="btn small" onclick="sendReportTeams('status-ai-panel')"><i class="ti ti-brand-teams"></i> Teams</button>
                 <button class="btn small" onclick="emailReport('status-ai-panel')"><i class="ti ti-mail"></i> Email</button>
@@ -273,6 +277,7 @@
               <div class="ai-output-text" id="comms-ai-text"></div>
               <div class="ai-output-actions">
                 <button class="btn small" onclick="copyOutput('comms-ai-text')"><i class="ti ti-copy"></i> Copy</button>
+                <button class="btn small" onclick="exportPdf('comms-ai-panel')"><i class="ti ti-file-type-pdf"></i> PDF</button>
                 <button class="btn small" onclick="sendReportSlack('comms-ai-panel')"><i class="ti ti-brand-slack"></i> Slack</button>
                 <button class="btn small" onclick="sendReportTeams('comms-ai-panel')"><i class="ti ti-brand-teams"></i> Teams</button>
                 <button class="btn small" onclick="emailReport('comms-ai-panel')"><i class="ti ti-mail"></i> Email</button>

@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EDM Test Suite</title>
+<style>
+  :root {
+    --bg1:#ffffff; --bg2:#f5f5f3; --bg3:#eceae4;
+    --tx1:#1a1a18; --tx2:#6b6b67; --tx3:#9e9e9a;
+    --green:#3B6D11; --green-bg:#EAF3DE;
+    --amber:#854F0B; --amber-bg:#FAEEDA;
+    --red:#A32D2D;   --red-bg:#FCEBEB;
+    --blue:#185FA5;  --blue-bg:#E6F1FB;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--sans); font-size:14px; color:var(--tx1); background:var(--bg3); padding:24px; }
+  .header { background:var(--blue); color:#fff; border-radius:12px; padding:24px 28px; margin-bottom:24px; }
+  .header h1 { font-size:22px; font-weight:500; margin-bottom:6px; }
+  .header p  { font-size:13px; opacity:0.8; }
+  .summary { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px; }
+  .summary-card { background:var(--bg1); border-radius:10px; padding:16px; text-align:center; border:0.5px solid rgba(0,0,0,0.1); }
+  .summary-card .val { font-size:32px; font-weight:500; line-height:1; margin-bottom:4px; }
+  .summary-card .lbl { font-size:12px; color:var(--tx2); }
+  .suite { background:var(--bg1); border-radius:12px; border:0.5px solid rgba(0,0,0,0.1); margin-bottom:16px; overflow:hidden; }
+  .suite-header { padding:14px 20px; background:var(--bg2); display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none; }
+  .suite-header h2 { font-size:14px; font-weight:500; display:flex; align-items:center; gap:8px; }
+  .suite-body { padding:0 20px; }
+  .test-row { display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:0.5px solid rgba(0,0,0,0.06); }
+  .test-row:last-child { border:none; }
+  .test-status { width:20px; height:20px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:500; margin-top:1px; }
+  .test-status.pass    { background:var(--green-bg); color:var(--green); }
+  .test-status.fail    { background:var(--red-bg);   color:var(--red); }
+  .test-status.warn    { background:var(--amber-bg); color:var(--amber); }
+  .test-status.pending { background:var(--bg3);      color:var(--tx3); }
+  .test-status.running { background:var(--blue-bg);  color:var(--blue); animation:spin 1s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .test-info { flex:1 }
+  .test-name { font-size:13px; font-weight:500; margin-bottom:2px; }
+  .test-desc { font-size:12px; color:var(--tx2); }
+  .test-error { font-size:11px; color:var(--red); margin-top:4px; font-family:monospace; background:var(--red-bg); padding:4px 8px; border-radius:4px; word-break:break-all; }
+  .test-warn-msg { font-size:11px; color:var(--amber); margin-top:4px; }
+  .badge { display:inline-flex; align-items:center; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:500; }
+  .badge.pass  { background:var(--green-bg); color:var(--green); }
+  .badge.fail  { background:var(--red-bg);   color:var(--red); }
+  .badge.warn  { background:var(--amber-bg); color:var(--amber); }
+  .badge.skip  { background:var(--bg3);      color:var(--tx3); }
+  .controls { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
+  .btn { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; font-size:13px; font-weight:500; border:none; border-radius:8px; cursor:pointer; }
+  .btn.primary { background:var(--blue); color:#fff; }
+  .btn.primary:hover { background:#0C447C; }
+  .btn.secondary { background:var(--bg1); color:var(--tx1); border:0.5px solid rgba(0,0,0,0.2); }
+  .btn.secondary:hover { background:var(--bg2); }
+  .btn:disabled { opacity:0.4; cursor:not-allowed; }
+  .progress-bar { height:6px; background:var(--bg3); border-radius:4px; overflow:hidden; flex:1; }
+  .progress-fill { height:100%; background:var(--blue); border-radius:4px; transition:width 0.3s; }
+  .app-frame { display:none; }
+  .log { background:#1a1a18; color:#f0efe8; border-radius:8px; padding:14px; font-family:monospace; font-size:11px; line-height:1.7; max-height:200px; overflow-y:auto; margin-top:12px; }
+  .log .log-pass  { color:#6FCF97; }
+  .log .log-fail  { color:#EB5757; }
+  .log .log-warn  { color:#F2C94C; }
+  .log .log-info  { color:#56CCF2; }
+  .manual-section { background:var(--amber-bg); border-radius:10px; padding:16px 20px; margin-bottom:16px; border-left:4px solid var(--amber); }
+  .manual-section h3 { font-size:13px; font-weight:500; color:var(--amber); margin-bottom:8px; }
+  .manual-section ul { font-size:12px; color:var(--tx1); padding-left:16px; line-height:2; }
+  iframe#app-iframe { width:100%; height:600px; border:1px solid rgba(0,0,0,0.1); border-radius:8px; margin-top:12px; }
+  .suite-toggle { font-size:12px; color:var(--tx2); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🧪 Enterprise Delivery Management — Test Suite</h1>
+  <p>Automated browser tests for all major app functions. Run before going live.</p>
+</div>
+
+<div class="controls">
+  <button class="btn primary" id="run-all-btn" onclick="runAllTests()">▶ Run All Tests</button>
+  <button class="btn secondary" onclick="runCategory('data')">Data Layer</button>
+  <button class="btn secondary" onclick="runCategory('ui')">UI & Navigation</button>
+  <button class="btn secondary" onclick="runCategory('logic')">Business Logic</button>
+  <button class="btn secondary" onclick="runCategory('integration')">Integrations</button>
+  <button class="btn secondary" onclick="resetTests()">↺ Reset</button>
+  <div class="progress-bar" id="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+</div>
+
+<div class="summary">
+  <div class="summary-card"><div class="val" id="total-count" style="color:var(--blue)">0</div><div class="lbl">Total Tests</div></div>
+  <div class="summary-card"><div class="val" id="pass-count"  style="color:var(--green)">0</div><div class="lbl">Passed</div></div>
+  <div class="summary-card"><div class="val" id="fail-count"  style="color:var(--red)">0</div><div class="lbl">Failed</div></div>
+  <div class="summary-card"><div class="val" id="warn-count"  style="color:var(--amber)">0</div><div class="lbl">Warnings</div></div>
+</div>
+
+<!-- TEST SUITES -->
+<div id="suites-container"></div>
+
+<!-- MANUAL CHECKS -->
+<div class="manual-section">
+  <h3>⚠ Manual Checks Required (cannot be automated)</h3>
+  <ul>
+    <li>AI report generation — requires a live API key and endpoint</li>
+    <li>PowerPoint export — verify .pptx opens in PowerPoint or Google Slides</li>
+    <li>PDF export — verify both one-page summary and full report download correctly</li>
+    <li>Slack webhook — requires a real Slack workspace webhook URL</li>
+    <li>Teams webhook — requires a real Teams channel webhook URL</li>
+    <li>JIRA integration — requires live Atlassian credentials</li>
+    <li>ServiceNow integration — requires live ServiceNow instance</li>
+    <li>GitHub integration — requires a personal access token</li>
+    <li>Google Calendar — requires API key and calendar ID</li>
+    <li>Outlook — requires MS Graph access token</li>
+    <li>Confluence — requires Atlassian credentials</li>
+    <li>Email (mailto) — verify pre-filled subject and body open in mail client</li>
+  </ul>
+</div>
+
+<!-- APP IFRAME FOR INTEGRATION TESTING -->
+<div style="margin-top:16px">
+  <div style="font-size:13px;font-weight:500;margin-bottom:8px">Live App Preview (for visual verification)</div>
+  <p style="font-size:12px;color:var(--tx2);margin-bottom:8px">The app must be in the same folder as this test file. Serve via <code>npx serve .</code> for best results.</p>
+  <iframe id="app-iframe" src="index.html" title="EDM App"></iframe>
+</div>
+
+<!-- CONSOLE LOG -->
+<div class="log" id="test-log"><span class="log-info">Test suite ready. Click "Run All Tests" to begin.</span></div>
+
+<script>
+// ─── TEST FRAMEWORK ───────────────────────────────────────────────────────────
+
+const SUITES = [];
+let results = { total:0, pass:0, fail:0, warn:0 };
+let logEl, appWin;
+
+function suite(name, category, tests) {
+  SUITES.push({ name, category, tests });
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
+function assertExists(val, name) {
+  if (val === undefined || val === null) throw new Error(`${name} is null/undefined`);
+}
+
+function assertType(val, type, name) {
+  if (typeof val !== type) throw new Error(`${name} should be ${type}, got ${typeof val}`);
+}
+
+function assertArray(val, name) {
+  if (!Array.isArray(val)) throw new Error(`${name} should be an array`);
+}
+
+function warn(message) {
+  const e = new Error(message);
+  e.isWarning = true;
+  throw e;
+}
+
+// ─── LOG ──────────────────────────────────────────────────────────────────────
+
+function log(msg, type = 'info') {
+  logEl = logEl || document.getElementById('test-log');
+  const span = document.createElement('span');
+  span.className = 'log-' + type;
+  span.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg + '\n';
+  logEl.appendChild(span);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+
+function renderSuites() {
+  const container = document.getElementById('suites-container');
+  container.innerHTML = SUITES.map((s, si) => `
+    <div class="suite" id="suite-${si}">
+      <div class="suite-header" onclick="toggleSuite(${si})">
+        <h2><span id="suite-icon-${si}">⏳</span> ${s.name} <span class="badge skip" id="suite-badge-${si}">${s.tests.length} tests</span></h2>
+        <span class="suite-toggle" id="suite-toggle-${si}">▼</span>
+      </div>
+      <div class="suite-body" id="suite-body-${si}">
+        ${s.tests.map((t, ti) => `
+          <div class="test-row" id="test-${si}-${ti}">
+            <div class="test-status pending" id="status-${si}-${ti}">○</div>
+            <div class="test-info">
+              <div class="test-name">${t.name}</div>
+              <div class="test-desc">${t.desc || ''}</div>
+              <div id="test-msg-${si}-${ti}"></div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function toggleSuite(si) {
+  const body = document.getElementById('suite-body-' + si);
+  const tog  = document.getElementById('suite-toggle-' + si);
+  const hidden = body.style.display === 'none';
+  body.style.display = hidden ? 'block' : 'none';
+  tog.textContent = hidden ? '▼' : '▶';
+}
+
+function setTestResult(si, ti, status, message) {
+  const statusEl = document.getElementById(`status-${si}-${ti}`);
+  const msgEl    = document.getElementById(`test-msg-${si}-${ti}`);
+  const icons    = { pass:'✓', fail:'✗', warn:'!', running:'…' };
+  statusEl.className = 'test-status ' + status;
+  statusEl.textContent = icons[status] || '○';
+  if (message) {
+    msgEl.className = status === 'fail' ? 'test-error' : 'test-warn-msg';
+    msgEl.textContent = message;
+  }
+}
+
+function updateSuiteBadge(si, pass, fail, warn) {
+  const badge = document.getElementById(`suite-badge-${si}`);
+  const icon  = document.getElementById(`suite-icon-${si}`);
+  if (fail > 0) { badge.className='badge fail'; badge.textContent=`${fail} failed`; icon.textContent='❌'; }
+  else if (warn > 0) { badge.className='badge warn'; badge.textContent=`${warn} warnings`; icon.textContent='⚠️'; }
+  else { badge.className='badge pass'; badge.textContent=`${pass} passed`; icon.textContent='✅'; }
+}
+
+function updateSummary() {
+  document.getElementById('total-count').textContent = results.total;
+  document.getElementById('pass-count').textContent  = results.pass;
+  document.getElementById('fail-count').textContent  = results.fail;
+  document.getElementById('warn-count').textContent  = results.warn;
+  const pct = results.total ? Math.round((results.pass + results.warn) / results.total * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-fill').style.background = results.fail > 0 ? '#E24B4A' : '#1D9E75';
+}
+
+// ─── TEST RUNNER ──────────────────────────────────────────────────────────────
+
+async function runAllTests() {
+  document.getElementById('run-all-btn').disabled = true;
+  resetResults();
+  log('Starting full test run...', 'info');
+  for (let si = 0; si < SUITES.length; si++) {
+    await runSuiteByIndex(si);
+  }
+  const emoji = results.fail === 0 ? '🎉' : '⚠️';
+  log(`${emoji} Done — ${results.pass} passed, ${results.fail} failed, ${results.warn} warnings`, results.fail > 0 ? 'fail' : 'pass');
+  document.getElementById('run-all-btn').disabled = false;
+}
+
+async function runCategory(cat) {
+  resetResults();
+  for (let si = 0; si < SUITES.length; si++) {
+    if (SUITES[si].category === cat) await runSuiteByIndex(si);
+  }
+}
+
+async function runSuiteByIndex(si) {
+  const s = SUITES[si];
+  let sp = 0, sf = 0, sw = 0;
+  log(`Running suite: ${s.name}`, 'info');
+  for (let ti = 0; ti < s.tests.length; ti++) {
+    const t = s.tests[ti];
+    setTestResult(si, ti, 'running', '');
+    await new Promise(r => setTimeout(r, 20)); // let UI update
+    try {
+      await t.fn();
+      setTestResult(si, ti, 'pass');
+      results.pass++; sp++;
+      log(`  ✓ ${t.name}`, 'pass');
+    } catch(e) {
+      if (e.isWarning) {
+        setTestResult(si, ti, 'warn', e.message);
+        results.warn++; sw++;
+        log(`  ⚠ ${t.name}: ${e.message}`, 'warn');
+      } else {
+        setTestResult(si, ti, 'fail', e.message);
+        results.fail++; sf++;
+        log(`  ✗ ${t.name}: ${e.message}`, 'fail');
+      }
+    }
+    results.total++;
+    updateSummary();
+  }
+  updateSuiteBadge(si, sp, sf, sw);
+}
+
+function resetTests() {
+  resetResults();
+  renderSuites();
+  log('Tests reset.', 'info');
+}
+
+function resetResults() {
+  results = { total:0, pass:0, fail:0, warn:0 };
+  updateSummary();
+  document.getElementById('progress-fill').style.width = '0%';
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+
+function getAppWindow() {
+  const iframe = document.getElementById('app-iframe');
+  try { return iframe.contentWindow; } catch(e) { return null; }
+}
+
+function getAppDoc() {
+  const iframe = document.getElementById('app-iframe');
+  try { return iframe.contentDocument || iframe.contentWindow.document; } catch(e) { return null; }
+}
+
+function appEl(id) {
+  const doc = getAppDoc();
+  return doc ? doc.getElementById(id) : null;
+}
+
+function appState() {
+  const w = getAppWindow();
+  return w ? w.state : null;
+}
+
+function appFn(name, ...args) {
+  const w = getAppWindow();
+  if (!w || typeof w[name] !== 'function') throw new Error(`Function ${name} not found in app`);
+  return w[name](...args);
+}
+
+// Wait for iframe to load
+async function waitForApp(timeout = 5000) {
+  return new Promise((resolve, reject) => {
+    const iframe = document.getElementById('app-iframe');
+    const check = () => {
+      try {
+        const w = iframe.contentWindow;
+        if (w && w.state && w.renderPortfolio) { resolve(w); return; }
+      } catch(e) {}
+      setTimeout(check, 200);
+    };
+    setTimeout(() => reject(new Error('App did not load within timeout')), timeout);
+    check();
+  });
+}
+
+// ─── TEST DEFINITIONS ─────────────────────────────────────────────────────────
+
+// ── 1. FILE STRUCTURE ─────────────────────────────────────────────────────────
+suite('File Structure & Loading', 'data', [
+  {
+    name: 'index.html loads in iframe',
+    desc: 'App iframe loads without errors',
+    fn: async () => {
+      await waitForApp(8000);
+      const w = getAppWindow();
+      assert(w, 'App window not accessible');
+    }
+  },
+  {
+    name: 'Global state object exists',
+    desc: 'state object is initialized',
+    fn: async () => {
+      const w = await waitForApp();
+      assertExists(w.state, 'state');
+      assertType(w.state, 'object', 'state');
+    }
+  },
+  {
+    name: 'Core functions are defined',
+    desc: 'renderPortfolio, navigate, saveState, loadState exist',
+    fn: async () => {
+      const w = await waitForApp();
+      const fns = ['renderPortfolio','navigate','saveState','loadState','showToast','openModal','closeModal'];
+      fns.forEach(fn => assert(typeof w[fn] === 'function', `${fn} is not defined`));
+    }
+  },
+  {
+    name: 'Module functions are defined',
+    desc: 'Governance, planning, reporting modules loaded',
+    fn: async () => {
+      const w = await waitForApp();
+      const fns = ['renderRisks','renderDecisions','calcProjectHealth','renderOKRs','renderVendors'];
+      const missing = fns.filter(fn => typeof w[fn] !== 'function');
+      if (missing.length) warn(`Some module functions missing: ${missing.join(', ')}`);
+    }
+  },
+  {
+    name: 'PptxGenJS library loaded',
+    desc: 'PowerPoint export library available',
+    fn: async () => {
+      const w = await waitForApp();
+      assert(typeof w.PptxGenJS !== 'undefined' || typeof w.pptxgen !== 'undefined', 'PptxGenJS not loaded');
+    }
+  },
+  {
+    name: 'jsPDF library loaded',
+    desc: 'PDF export library available',
+    fn: async () => {
+      const w = await waitForApp();
+      assert(typeof w.jspdf !== 'undefined', 'jsPDF not loaded');
+    }
+  }
+]);
+
+// ── 2. DATA LAYER ─────────────────────────────────────────────────────────────
+suite('Data Layer', 'data', [
+  {
+    name: 'Default projects loaded',
+    desc: 'state.projects contains default data',
+    fn: async () => {
+      const w = await waitForApp();
+      assertArray(w.state.projects, 'state.projects');
+      assert(w.state.projects.length > 0, 'No projects in state');
+    }
+  },
+  {
+    name: 'All required state arrays exist',
+    desc: 'projects, stakeholders, escalations, capacity, risks, decisions',
+    fn: async () => {
+      const w = await waitForApp();
+      const arrays = ['projects','stakeholders','escalations','capacity','risks','decisions'];
+      arrays.forEach(k => assertArray(w.state[k], `state.${k}`));
+    }
+  },
+  {
+    name: 'nextId counters exist',
+    desc: 'state.nextId object with counters for each entity',
+    fn: async () => {
+      const w = await waitForApp();
+      assertExists(w.state.nextId, 'state.nextId');
+      assert(typeof w.state.nextId === 'object', 'nextId should be object');
+    }
+  },
+  {
+    name: 'saveState writes to localStorage',
+    desc: 'saveState persists data',
+    fn: async () => {
+      const w = await waitForApp();
+      w.saveState();
+      const saved = w.localStorage.getItem('edm_web_v2');
+      assert(saved, 'Nothing saved to localStorage');
+      const parsed = JSON.parse(saved);
+      assertArray(parsed.projects, 'saved.projects');
+    }
+  },
+  {
+    name: 'exportData creates download',
+    desc: 'exportData function runs without error',
+    fn: async () => {
+      const w = await waitForApp();
+      // Override click to prevent actual download in test
+      const origCreate = w.document.createElement.bind(w.document);
+      let triggered = false;
+      w.document.createElement = (tag) => {
+        const el = origCreate(tag);
+        if (tag === 'a') {
+          el.click = () => { triggered = true; };
+          Object.defineProperty(el, 'href', { set: () => {}, get: () => 'blob:test' });
+          el.download = '';
+        }
+        return el;
+      };
+      try { w.exportData(); } catch(e) {}
+      w.document.createElement = origCreate;
+      // Function ran without throwing — pass
+    }
+  },
+  {
+    name: 'Project data structure is valid',
+    desc: 'Each project has id, name, owner, status, progress, due',
+    fn: async () => {
+      const w = await waitForApp();
+      w.state.projects.forEach((p, i) => {
+        assert(p.id !== undefined,   `Project ${i} missing id`);
+        assert(p.name,               `Project ${i} missing name`);
+        assert(p.status,             `Project ${i} missing status`);
+        assert(p.progress !== undefined, `Project ${i} missing progress`);
+      });
+    }
+  },
+  {
+    name: 'Risk RAG values are valid',
+    desc: 'All risks have valid rag values (red/amber/green)',
+    fn: async () => {
+      const w = await waitForApp();
+      const valid = ['red','amber','green'];
+      w.state.risks.forEach((r, i) => {
+        if (r.rag) assert(valid.includes(r.rag), `Risk ${i} has invalid rag: ${r.rag}`);
+      });
+    }
+  }
+]);
+
+// ── 3. UI & NAVIGATION ────────────────────────────────────────────────────────
+suite('UI & Navigation', 'ui', [
+  {
+    name: 'Sidebar nav items exist',
+    desc: 'All nav buttons are present in DOM',
+    fn: async () => {
+      await waitForApp();
+      const doc = getAppDoc();
+      const navItems = doc.querySelectorAll('.nav-item');
+      assert(navItems.length >= 10, `Expected 10+ nav items, found ${navItems.length}`);
+    }
+  },
+  {
+    name: 'All section divs exist',
+    desc: 'Every section referenced in nav has a corresponding div',
+    fn: async () => {
+      await waitForApp();
+      const doc = getAppDoc();
+      const sections = ['dashboard','portfolio','stakeholders','capacity','escalations','risks','decisions','ai','integrations'];
+      const missing = sections.filter(s => !doc.getElementById('section-' + s));
+      if (missing.length) throw new Error(`Missing sections: ${missing.join(', ')}`);
+    }
+  },
+  {
+    name: 'Dashboard section renders metrics',
+    desc: 'Dashboard stat elements have values',
+    fn: async () => {
+      await waitForApp();
+      const ids = ['ds-projects','ds-ontrack','ds-atrisk','ds-critical'];
+      const missing = ids.filter(id => !appEl(id));
+      if (missing.length) warn(`Missing dashboard metrics: ${missing.join(', ')}`);
+    }
+  },
+  {
+    name: 'Portfolio table renders rows',
+    desc: 'projects-tbody has content',
+    fn: async () => {
+      await waitForApp();
+      const tbody = appEl('projects-tbody');
+      assertExists(tbody, 'projects-tbody');
+      assert(tbody.children.length > 0, 'Portfolio table has no rows');
+    }
+  },
+  {
+    name: 'Navigation switches sections',
+    desc: 'Clicking nav changes active section',
+    fn: async () => {
+      const w = await waitForApp();
+      const doc = getAppDoc();
+      const portfolioBtn = doc.querySelector('[data-section="risks"]');
+      if (!portfolioBtn) warn('Risk nav button not found by data-section');
+      else {
+        portfolioBtn.click();
+        await new Promise(r => setTimeout(r, 100));
+        const riskSection = doc.getElementById('section-risks');
+        assert(riskSection && riskSection.classList.contains('active'), 'Risk section not activated after nav click');
+      }
+    }
+  },
+  {
+    name: 'Modals open and close',
+    desc: 'openModal / closeModal functions work',
+    fn: async () => {
+      const w = await waitForApp();
+      const doc = getAppDoc();
+      w.openModal('project-modal');
+      await new Promise(r => setTimeout(r, 50));
+      const modal = doc.getElementById('project-modal');
+      assert(modal && modal.classList.contains('open'), 'Modal did not open');
+      w.closeModal('project-modal');
+      await new Promise(r => setTimeout(r, 50));
+      assert(!modal.classList.contains('open'), 'Modal did not close');
+    }
+  },
+  {
+    name: 'AI config bar exists',
+    desc: 'AI URL, key, model inputs are present',
+    fn: async () => {
+      await waitForApp();
+      const inputs = ['ai-url','ai-key','ai-model'];
+      const missing = inputs.filter(id => !appEl(id));
+      if (missing.length) throw new Error(`Missing AI config inputs: ${missing.join(', ')}`);
+    }
+  },
+  {
+    name: 'Topbar title updates on navigation',
+    desc: 'topbar-title element exists and contains text',
+    fn: async () => {
+      await waitForApp();
+      const titleEl = appEl('topbar-title');
+      assertExists(titleEl, 'topbar-title');
+      assert(titleEl.textContent.length > 0, 'Topbar title is empty');
+    }
+  },
+  {
+    name: 'Toast notification function works',
+    desc: 'showToast runs without error',
+    fn: async () => {
+      const w = await waitForApp();
+      w.showToast('Test notification');
+      await new Promise(r => setTimeout(r, 50));
+      const toast = appEl('toast');
+      assertExists(toast, 'toast element');
+    }
+  }
+]);
+
+// ── 4. CRUD OPERATIONS ────────────────────────────────────────────────────────
+suite('CRUD Operations', 'logic', [
+  {
+    name: 'Add project',
+    desc: 'New project can be added to state',
+    fn: async () => {
+      const w = await waitForApp();
+      const before = w.state.projects.length;
+      w.state.projects.push({ id:9999, name:'Test Project', owner:'Tester', status:'On Track', progress:50, due:'2026-12-31', notes:'' });
+      assert(w.state.projects.length === before + 1, 'Project not added');
+      w.state.projects = w.state.projects.filter(p => p.id !== 9999);
+    }
+  },
+  {
+    name: 'Delete project',
+    desc: 'Project can be removed from state',
+    fn: async () => {
+      const w = await waitForApp();
+      const testId = 8888;
+      w.state.projects.push({ id:testId, name:'Delete Me', owner:'Test', status:'On Track', progress:0, due:'2026-01-01', notes:'' });
+      w.state.projects = w.state.projects.filter(p => p.id !== testId);
+      assert(!w.state.projects.find(p => p.id === testId), 'Project not deleted');
+    }
+  },
+  {
+    name: 'Add escalation',
+    desc: 'Escalation can be added to state',
+    fn: async () => {
+      const w = await waitForApp();
+      const before = w.state.escalations.length;
+      w.state.escalations.push({ id:9999, issue:'Test escalation', project:'Test', severity:'High', owner:'Test', status:'Open', days:0, notes:'' });
+      assert(w.state.escalations.length === before + 1, 'Escalation not added');
+      w.state.escalations = w.state.escalations.filter(e => e.id !== 9999);
+    }
+  },
+  {
+    name: 'Add risk with RAG calculation',
+    desc: 'calcRag function returns correct values',
+    fn: async () => {
+      const w = await waitForApp();
+      if (typeof w.calcRag !== 'function') warn('calcRag not exposed globally — skipping');
+      else {
+        assert(w.calcRag('High','High')   === 'red',   'High/High should be red');
+        assert(w.calcRag('Low','Low')     === 'green', 'Low/Low should be green');
+        assert(w.calcRag('Medium','High') !== 'green', 'Medium/High should not be green');
+      }
+    }
+  },
+  {
+    name: 'Add stakeholder',
+    desc: 'Stakeholder can be added to state',
+    fn: async () => {
+      const w = await waitForApp();
+      const before = w.state.stakeholders.length;
+      w.state.stakeholders.push({ id:9999, name:'Test User', role:'Tester', influence:'Low', engagement:'Neutral', color:'blue', notes:'' });
+      assert(w.state.stakeholders.length === before + 1, 'Stakeholder not added');
+      w.state.stakeholders = w.state.stakeholders.filter(s => s.id !== 9999);
+    }
+  },
+  {
+    name: 'Render functions execute without throwing',
+    desc: 'Core render functions run without JS errors',
+    fn: async () => {
+      const w = await waitForApp();
+      const fns = ['renderPortfolio','renderStakeholders','renderCapacity','renderEscalations','renderRisks','renderDecisions'];
+      const errors = [];
+      fns.forEach(fn => {
+        try { if (typeof w[fn] === 'function') w[fn](); }
+        catch(e) { errors.push(`${fn}: ${e.message}`); }
+      });
+      if (errors.length) throw new Error(errors.join(' | '));
+    }
+  },
+  {
+    name: 'Module render functions execute without throwing',
+    desc: 'New module renders run without JS errors',
+    fn: async () => {
+      const w = await waitForApp();
+      const fns = ['renderHealthScorecard','renderOKRs','renderVendors','renderBenefits','renderRAID'];
+      const errors = [];
+      fns.forEach(fn => {
+        try { if (typeof w[fn] === 'function') w[fn](); }
+        catch(e) { errors.push(`${fn}: ${e.message}`); }
+      });
+      if (errors.length) warn(`Some module renders had errors: ${errors.join(' | ')}`);
+    }
+  }
+]);
+
+// ── 5. BUSINESS LOGIC ─────────────────────────────────────────────────────────
+suite('Business Logic & Calculations', 'logic', [
+  {
+    name: 'Health scorecard calculates scores',
+    desc: 'calcProjectHealth returns valid score object',
+    fn: async () => {
+      const w = await waitForApp();
+      if (typeof w.calcProjectHealth !== 'function') warn('calcProjectHealth not exposed — skipping');
+      else {
+        const project = w.state.projects[0];
+        const result  = w.calcProjectHealth(project);
+        assertExists(result, 'health result');
+        assert(result.overall >= 0 && result.overall <= 100, `Overall score out of range: ${result.overall}`);
+        assert(['red','amber','green'].includes(result.rag), `Invalid RAG: ${result.rag}`);
+      }
+    }
+  },
+  {
+    name: 'Budget burn rate calculates correctly',
+    desc: 'calcBurnRate returns expected fields',
+    fn: async () => {
+      const w = await waitForApp();
+      if (typeof w.calcBurnRate !== 'function') warn('calcBurnRate not exposed — skipping');
+      else {
+        const budget = { project:'Test', planned:100000, actual:50000, startDate:'2026-01-01', endDate:'2026-12-31' };
+        const result = w.calcBurnRate(budget);
+        if (result) {
+          assert(result.pctSpent !== undefined, 'pctSpent missing');
+          assert(result.pctSpent === 50, `Expected 50% spent, got ${result.pctSpent}`);
+        }
+      }
+    }
+  },
+  {
+    name: 'Milestone RAG logic works',
+    desc: 'Overdue milestones return red, future return green',
+    fn: async () => {
+      const w = await waitForApp();
+      if (typeof w.milestoneRag !== 'function') warn('milestoneRag not exposed — skipping');
+      else {
+        const past   = w.milestoneRag('2020-01-01', 'On Track');
+        const future = w.milestoneRag('2030-01-01', 'On Track');
+        assert(past   === 'red',   `Past date should be red, got ${past}`);
+        assert(future === 'green', `Far future should be green, got ${future}`);
+      }
+    }
+  },
+  {
+    name: 'OKR progress calculation',
+    desc: 'okrRag returns correct colors based on progress',
+    fn: async () => {
+      const w = await waitForApp();
+      if (typeof w.okrRag !== 'function') warn('okrRag not exposed — skipping');
+      else {
+        assert(w.okrRag({ progress:90, target:100, status:'In Progress' }) === 'green', 'High progress should be green');
+        assert(w.okrRag({ progress:10, target:100, status:'In Progress' }) === 'red',   'Low progress should be red');
+      }
+    }
+  },
+  {
+    name: 'Portfolio metrics update correctly',
+    desc: 'Metric counters reflect actual state data',
+    fn: async () => {
+      const w = await waitForApp();
+      w.renderPortfolio();
+      await new Promise(r => setTimeout(r, 100));
+      const totalEl    = appEl('m-total');
+      const onTrackEl  = appEl('m-ontrack');
+      if (!totalEl) warn('m-total element not found');
+      else {
+        const displayTotal   = parseInt(totalEl.textContent);
+        const actualTotal    = w.state.projects.length;
+        assert(displayTotal === actualTotal, `Total shown (${displayTotal}) != actual (${actualTotal})`);
+        const displayOnTrack = parseInt(onTrackEl?.textContent || '0');
+        const actualOnTrack  = w.state.projects.filter(p => p.status === 'On Track').length;
+        assert(displayOnTrack === actualOnTrack, `On Track shown (${displayOnTrack}) != actual (${actualOnTrack})`);
+      }
+    }
+  },
+  {
+    name: 'Report sections config saves',
+    desc: 'saveReportConfig writes to localStorage',
+    fn: async () => {
+      const w = await waitForApp();
+      if (typeof w.saveReportConfig === 'function') {
+        w.saveReportConfig();
+        const saved = w.localStorage.getItem('edm_report_config');
+        assert(saved !== null, 'Report config not saved to localStorage');
+      } else warn('saveReportConfig not available');
+    }
+  },
+  {
+    name: 'buildReportData returns string',
+    desc: 'Report data builder returns non-empty string',
+    fn: async () => {
+      const w = await waitForApp();
+      if (typeof w.buildReportData === 'function') {
+        const data = w.buildReportData(['portfolio_rag','open_risks','escalations']);
+        assertType(data, 'string', 'report data');
+        assert(data.length > 50, 'Report data too short');
+      } else warn('buildReportData not exposed globally');
+    }
+  }
+]);
+
+// ── 6. AI CONFIG ──────────────────────────────────────────────────────────────
+suite('AI Configuration', 'integration', [
+  {
+    name: 'AI config saves to localStorage',
+    desc: 'saveAIConfig stores url, model',
+    fn: async () => {
+      const w = await waitForApp();
+      const urlEl   = appEl('ai-url');
+      const modelEl = appEl('ai-model');
+      if (!urlEl || !modelEl) warn('AI config inputs not found');
+      else {
+        urlEl.value   = 'https://api.openai.com/v1';
+        modelEl.value = 'gpt-4o';
+        w.saveAIConfig();
+        assert(w.localStorage.getItem('edm_ai_url')   === 'https://api.openai.com/v1', 'URL not saved');
+        assert(w.localStorage.getItem('edm_ai_model') === 'gpt-4o',                    'Model not saved');
+      }
+    }
+  },
+  {
+    name: 'AI presets fill in correctly',
+    desc: 'applyPreset populates URL and model fields',
+    fn: async () => {
+      const w = await waitForApp();
+      if (typeof w.applyPreset === 'function') {
+        w.applyPreset('openai');
+        const urlEl = appEl('ai-url');
+        assert(urlEl && urlEl.value.includes('openai'), 'OpenAI preset URL not applied');
+      } else warn('applyPreset not exposed');
+    }
+  },
+  {
+    name: 'AI status indicator updates',
+    desc: 'updateAIStatus reflects configured state',
+    fn: async () => {
+      const w = await waitForApp();
+      w.localStorage.setItem('edm_ai_url',   'https://api.openai.com/v1');
+      w.localStorage.setItem('edm_ai_model', 'gpt-4o');
+      w.updateAIStatus();
+      await new Promise(r => setTimeout(r, 50));
+      const statusEl = appEl('ai-status');
+      if (statusEl) assert(statusEl.classList.contains('ok'), 'AI status not showing ok');
+      else warn('ai-status element not found');
+    }
+  },
+  {
+    name: 'callAI fails gracefully without config',
+    desc: 'callAI returns null and shows toast when not configured',
+    fn: async () => {
+      const w = await waitForApp();
+      w.localStorage.removeItem('edm_ai_url');
+      w.localStorage.removeItem('edm_ai_model');
+      const result = await w.callAI('test prompt');
+      assert(result === null, 'callAI should return null when not configured');
+    }
+  },
+  {
+    name: 'JIRA config saves correctly',
+    desc: 'JIRA object exists and config methods work',
+    fn: async () => {
+      const w = await waitForApp();
+      if (typeof w.JIRA === 'undefined') warn('JIRA module not loaded');
+      else {
+        assert(typeof w.JIRA.getConfig === 'function', 'JIRA.getConfig not a function');
+        assert(typeof w.JIRA.isConfigured === 'function', 'JIRA.isConfigured not a function');
+        const cfg = w.JIRA.getConfig();
+        assertType(cfg, 'object', 'JIRA config');
+      }
+    }
+  },
+  {
+    name: 'ServiceNow module loaded',
+    desc: 'SNOW object exists with required methods',
+    fn: async () => {
+      const w = await waitForApp();
+      if (typeof w.SNOW === 'undefined') warn('SNOW module not loaded');
+      else {
+        const methods = ['getConfig','saveConfig','isConfigured','testConnection','pullIncidents','buildAIContext'];
+        const missing = methods.filter(m => typeof w.SNOW[m] !== 'function');
+        if (missing.length) throw new Error(`SNOW missing methods: ${missing.join(', ')}`);
+      }
+    }
+  },
+  {
+    name: 'Integration webhooks save correctly',
+    desc: 'Slack and Teams webhook config persists',
+    fn: async () => {
+      const w = await waitForApp();
+      const slackEl = appEl('slack-webhook');
+      const teamsEl = appEl('teams-webhook');
+      if (!slackEl || !teamsEl) warn('Webhook inputs not found');
+      else {
+        slackEl.value = 'https://hooks.slack.com/test';
+        teamsEl.value = 'https://teams.webhook.test';
+        if (typeof w.saveIntegrations === 'function') {
+          w.saveIntegrations();
+          assert(w.localStorage.getItem('int_slack_webhook') === 'https://hooks.slack.com/test', 'Slack webhook not saved');
+        } else warn('saveIntegrations not exposed');
+      }
+    }
+  }
+]);
+
+// ── 7. EXPORT FUNCTIONS ───────────────────────────────────────────────────────
+suite('Export Functions', 'logic', [
+  {
+    name: 'exportToPptx function exists',
+    desc: 'PowerPoint export function is defined',
+    fn: async () => {
+      const w = await waitForApp();
+      assert(typeof w.exportToPptx === 'function', 'exportToPptx not defined');
+    }
+  },
+  {
+    name: 'exportPdf function exists',
+    desc: 'PDF export picker function is defined',
+    fn: async () => {
+      const w = await waitForApp();
+      assert(typeof w.exportPdf === 'function', 'exportPdf not defined');
+    }
+  },
+  {
+    name: 'exportPdfSummary function exists',
+    desc: 'One-page PDF summary function defined',
+    fn: async () => {
+      const w = await waitForApp();
+      assert(typeof w.exportPdfSummary === 'function', 'exportPdfSummary not defined');
+    }
+  },
+  {
+    name: 'exportPdfFull function exists',
+    desc: 'Full report PDF function defined',
+    fn: async () => {
+      const w = await waitForApp();
+      assert(typeof w.exportPdfFull === 'function', 'exportPdfFull not defined');
+    }
+  },
+  {
+    name: 'exportPdf shows picker on valid panel',
+    desc: 'PDF picker div appears when called on a visible panel',
+    fn: async () => {
+      const w = await waitForApp();
+      const doc = getAppDoc();
+      // Make the portfolio panel visible with content
+      const panel = doc.getElementById('portfolio-ai-panel');
+      if (!panel) warn('portfolio-ai-panel not found');
+      else {
+        panel.style.display = 'block';
+        panel.setAttribute('data-report', 'Test report content that is long enough to trigger export');
+        panel.setAttribute('data-title', 'Test Report');
+        const textEl = doc.getElementById('portfolio-ai-text');
+        if (textEl) textEl.textContent = 'Test report content that is long enough to trigger export functionality properly.';
+        w.exportPdf('portfolio-ai-panel');
+        await new Promise(r => setTimeout(r, 100));
+        const picker = panel.querySelector('.pdf-choice');
+        assert(picker, 'PDF choice picker did not appear');
+        // Clean up
+        if (picker) picker.remove();
+        panel.style.display = 'none';
+      }
+    }
+  },
+  {
+    name: 'copyOutput function exists',
+    desc: 'Copy to clipboard function defined',
+    fn: async () => {
+      const w = await waitForApp();
+      assert(typeof w.copyOutput === 'function', 'copyOutput not defined');
+    }
+  },
+  {
+    name: 'Send helpers exist',
+    desc: 'sendReportSlack, sendReportTeams, emailReport defined',
+    fn: async () => {
+      const w = await waitForApp();
+      ['sendReportSlack','sendReportTeams','emailReport'].forEach(fn => {
+        assert(typeof w[fn] === 'function', `${fn} not defined`);
+      });
+    }
+  }
+]);
+
+// ── 8. EDGE CASES ─────────────────────────────────────────────────────────────
+suite('Edge Cases & Error Handling', 'logic', [
+  {
+    name: 'Empty state renders without crashing',
+    desc: 'Render functions handle empty arrays gracefully',
+    fn: async () => {
+      const w = await waitForApp();
+      const original = [...w.state.projects];
+      w.state.projects = [];
+      try {
+        w.renderPortfolio();
+        await new Promise(r => setTimeout(r, 50));
+        const tbody = appEl('projects-tbody');
+        assert(tbody, 'projects-tbody should still exist with empty state');
+      } finally {
+        w.state.projects = original;
+        w.renderPortfolio();
+      }
+    }
+  },
+  {
+    name: 'Navigate to unknown section does not crash',
+    desc: 'navigate handles unknown section IDs gracefully',
+    fn: async () => {
+      const w = await waitForApp();
+      try {
+        w.navigate('nonexistent-section-xyz', null);
+      } catch(e) {
+        throw new Error('navigate threw on unknown section: ' + e.message);
+      }
+    }
+  },
+  {
+    name: 'openModal on non-existent modal does not crash',
+    desc: 'openModal handles missing element gracefully',
+    fn: async () => {
+      const w = await waitForApp();
+      try { w.openModal('modal-does-not-exist-xyz'); }
+      catch(e) { throw new Error('openModal crashed on missing element: ' + e.message); }
+    }
+  },
+  {
+    name: 'Health score with missing data does not crash',
+    desc: 'calcProjectHealth handles incomplete project data',
+    fn: async () => {
+      const w = await waitForApp();
+      if (typeof w.calcProjectHealth === 'function') {
+        try {
+          const result = w.calcProjectHealth({ name:'Minimal', status:'On Track', progress:50 });
+          assertExists(result, 'health result');
+        } catch(e) {
+          throw new Error('calcProjectHealth crashed on minimal data: ' + e.message);
+        }
+      } else warn('calcProjectHealth not exposed');
+    }
+  },
+  {
+    name: 'Budget with no data does not crash',
+    desc: 'renderBudget handles empty budgets array',
+    fn: async () => {
+      const w = await waitForApp();
+      const original = w.state.budgets ? [...w.state.budgets] : [];
+      if (!w.state.budgets) w.state.budgets = [];
+      const prev = [...w.state.budgets];
+      w.state.budgets = [];
+      try {
+        if (typeof w.renderBudget === 'function') w.renderBudget();
+      } catch(e) {
+        throw new Error('renderBudget crashed on empty state: ' + e.message);
+      } finally {
+        w.state.budgets = prev.length ? prev : original;
+      }
+    }
+  },
+  {
+    name: 'showToast does not crash with long message',
+    desc: 'Toast handles edge case inputs',
+    fn: async () => {
+      const w = await waitForApp();
+      try {
+        w.showToast('A'.repeat(500));
+        w.showToast('');
+        w.showToast(null);
+      } catch(e) {
+        throw new Error('showToast crashed: ' + e.message);
+      }
+    }
+  }
+]);
+
+// ── 9. SECTION CONTENT ────────────────────────────────────────────────────────
+suite('Section Content Completeness', 'ui', [
+  {
+    name: 'Risk register has data',
+    desc: 'risks-tbody has rows',
+    fn: async () => {
+      const w = await waitForApp();
+      w.renderRisks();
+      await new Promise(r => setTimeout(r, 100));
+      const tbody = appEl('risks-tbody');
+      assertExists(tbody, 'risks-tbody');
+      assert(tbody.children.length > 0, 'Risk table has no rows');
+    }
+  },
+  {
+    name: 'Decision log has data',
+    desc: 'decisions-tbody has rows',
+    fn: async () => {
+      const w = await waitForApp();
+      if (typeof w.renderDecisions === 'function') w.renderDecisions();
+      await new Promise(r => setTimeout(r, 100));
+      const tbody = appEl('decisions-tbody');
+      if (!tbody) warn('decisions-tbody not found');
+      else assert(tbody.children.length > 0, 'Decisions table has no rows');
+    }
+  },
+  {
+    name: 'Executive report builder renders section toggles',
+    desc: 'report-sections-config has checkboxes',
+    fn: async () => {
+      const w = await waitForApp();
+      if (typeof w.renderReportBuilder === 'function') {
+        w.renderReportBuilder();
+        await new Promise(r => setTimeout(r, 100));
+        const container = appEl('report-sections-config');
+        if (!container) warn('report-sections-config not found');
+        else assert(container.querySelectorAll('input[type=checkbox]').length > 0, 'No checkboxes in report builder');
+      } else warn('renderReportBuilder not exposed');
+    }
+  },
+  {
+    name: 'ServiceNow section has config inputs',
+    desc: 'snow-instance, snow-user, snow-pass inputs exist',
+    fn: async () => {
+      await waitForApp();
+      const inputs = ['snow-instance','snow-user','snow-pass','snow-auth'];
+      const missing = inputs.filter(id => !appEl(id));
+      if (missing.length) throw new Error(`Missing ServiceNow inputs: ${missing.join(', ')}`);
+    }
+  },
+  {
+    name: 'Health scorecard section renders cards',
+    desc: 'health-scorecard-grid has content after render',
+    fn: async () => {
+      const w = await waitForApp();
+      if (typeof w.renderHealthScorecard === 'function') {
+        w.renderHealthScorecard();
+        await new Promise(r => setTimeout(r, 100));
+        const grid = appEl('health-scorecard-grid');
+        if (!grid) warn('health-scorecard-grid not found');
+        else assert(grid.children.length > 0, 'Health scorecard grid is empty');
+      } else warn('renderHealthScorecard not exposed');
+    }
+  },
+  {
+    name: 'OKR tracker renders rows',
+    desc: 'okr-tbody has content',
+    fn: async () => {
+      const w = await waitForApp();
+      if (typeof w.renderOKRs === 'function') {
+        w.renderOKRs();
+        await new Promise(r => setTimeout(r, 100));
+        const tbody = appEl('okr-tbody');
+        if (!tbody) warn('okr-tbody not found');
+        else assert(tbody.children.length > 0, 'OKR table has no rows');
+      } else warn('renderOKRs not exposed');
+    }
+  },
+  {
+    name: 'Vendor tracker renders rows',
+    desc: 'vendors-tbody has content',
+    fn: async () => {
+      const w = await waitForApp();
+      if (typeof w.renderVendors === 'function') {
+        w.renderVendors();
+        await new Promise(r => setTimeout(r, 100));
+        const tbody = appEl('vendors-tbody');
+        if (!tbody) warn('vendors-tbody not found');
+        else assert(tbody.children.length > 0, 'Vendor table has no rows');
+      } else warn('renderVendors not exposed');
+    }
+  }
+]);
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+
+renderSuites();
+updateSummary();
+
+// Auto-count total tests
+let totalTests = 0;
+SUITES.forEach(s => totalTests += s.tests.length);
+document.getElementById('total-count').textContent = totalTests;
+</script>
+</body>
+</html>

@@ -47,6 +47,7 @@
     <button class="nav-item" data-section="forecast"     onclick="navigate('forecast',this)"><i class="ti ti-users-group"></i> Forecasting</button>
     <button class="nav-item" data-section="skills"       onclick="navigate('skills',this)"><i class="ti ti-school"></i> Skills Matrix</button>
     <button class="nav-item" data-section="jira"         onclick="navigate('jira',this)"><i class="ti ti-brand-jira"></i> JIRA <span id="jira-nav-badge" class="nav-badge" style="display:none">Live</span></button>
+    <button class="nav-item" data-section="servicenow"   onclick="navigate('servicenow',this)"><i class="ti ti-urgent"></i> ServiceNow <span id="snow-nav-badge" class="nav-badge" style="display:none">Live</span></button>
     <button class="nav-item" data-section="github"       onclick="navigate('github',this)"><i class="ti ti-brand-github"></i> GitHub</button>
     <button class="nav-item" data-section="calendar"     onclick="navigate('calendar',this)"><i class="ti ti-calendar-stats"></i> Calendar</button>
     <button class="nav-item" data-section="confluence"   onclick="navigate('confluence',this)"><i class="ti ti-file-text"></i> Confluence</button>
@@ -934,6 +935,83 @@
   </div>
 </div>
 
+    <!-- SERVICENOW -->
+    <div class="section" id="section-servicenow">
+
+      <!-- Config -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header">
+          <span class="card-title"><i class="ti ti-urgent" style="margin-right:5px;color:#81B5A1"></i>ServiceNow Configuration</span>
+          <span id="snow-connection-status" class="int-status off">Not configured</span>
+        </div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label class="form-label">Instance URL</label>
+            <input id="snow-instance" class="form-input" type="text" placeholder="yourco.service-now.com" />
+            <div class="form-hint">Your ServiceNow instance hostname — no https:// prefix needed</div>
+          </div>
+          <div class="form-group"><label class="form-label">Username</label><input id="snow-user" class="form-input" type="text" placeholder="your.name@company.com" /></div>
+          <div class="form-group"><label class="form-label">Password / API Key</label><input id="snow-pass" class="form-input" type="password" placeholder="Password or API key" /></div>
+          <div class="form-group">
+            <label class="form-label">Auth Type</label>
+            <select id="snow-auth" class="form-input">
+              <option value="basic">Basic Auth (username + password)</option>
+              <option value="basic">API Key (paste key as password)</option>
+            </select>
+            <div class="form-hint">For production use, create a service account with read/write access to incident, change_request, problem, task tables</div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn primary small" onclick="SNOW.saveConfig()">Save</button>
+          <button id="snow-test-btn" class="btn small" onclick="SNOW.testConnection()">Test Connection</button>
+          <button class="btn small danger" onclick="SNOW.clearConfig()">Clear</button>
+        </div>
+      </div>
+
+      <!-- Live Data -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Live Data</span>
+          <div class="card-actions" style="flex-wrap:wrap;gap:6px">
+            <button class="btn small primary" onclick="SNOW.pullIncidents()"><i class="ti ti-refresh"></i> Incidents</button>
+            <button class="btn small" onclick="SNOW.pullChangeRequests()"><i class="ti ti-git-branch"></i> Changes</button>
+            <button class="btn small" onclick="SNOW.pullProblems()"><i class="ti ti-bug"></i> Problems</button>
+            <button class="btn small" onclick="SNOW.pullTasks()"><i class="ti ti-checklist"></i> My Tasks</button>
+          </div>
+        </div>
+
+        <!-- Import actions -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:10px 12px;background:var(--bg2);border-radius:var(--rmd)">
+          <span style="font-size:12px;color:var(--tx2);align-self:center;font-weight:500">Import to app:</span>
+          <button class="btn small success" onclick="SNOW.importIncidentsToEscalations()"><i class="ti ti-download"></i> High-priority incidents → Escalations</button>
+          <button class="btn small" onclick="SNOW.importChangesToLog()"><i class="ti ti-download"></i> Changes → Change Log</button>
+          <button class="btn small" onclick="SNOW.importProblemsToRisks()"><i class="ti ti-download"></i> Problems → Risk Register</button>
+          <span style="font-size:11px;color:var(--tx3);align-self:center">Loaded data also feeds into AI reports automatically</span>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:500;color:var(--tx2);margin-bottom:8px">Active Incidents</div>
+          <div id="snow-incidents-panel"><div class="empty-state" style="padding:12px 0"><i class="ti ti-urgent"></i><p>Click Incidents to load.</p></div></div>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:500;color:var(--tx2);margin-bottom:8px">Change Requests</div>
+          <div id="snow-changes-panel"><div class="empty-state" style="padding:12px 0"><i class="ti ti-git-branch"></i><p>Click Changes to load.</p></div></div>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:500;color:var(--tx2);margin-bottom:8px">Problems</div>
+          <div id="snow-problems-panel"><div class="empty-state" style="padding:12px 0"><i class="ti ti-bug"></i><p>Click Problems to load.</p></div></div>
+        </div>
+
+        <div>
+          <div style="font-size:12px;font-weight:500;color:var(--tx2);margin-bottom:8px">My Tasks</div>
+          <div id="snow-tasks-panel"><div class="empty-state" style="padding:12px 0"><i class="ti ti-checklist"></i><p>Click My Tasks to load.</p></div></div>
+        </div>
+      </div>
+
+    </div>
+
 <script src="data.js"></script>
 <script src="ai.js"></script>
 <script src="app.js"></script>
@@ -944,5 +1022,6 @@
 <script src="modules/reporting.js"></script>
 <script src="modules/resources.js"></script>
 <script src="modules/business.js"></script>
+<script src="modules/servicenow.js"></script>
 </body>
 </html>

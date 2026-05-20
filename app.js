@@ -5,7 +5,7 @@ function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('open');});
 
-const SECTION_TITLES={dashboard:'Executive Dashboard',portfolio:'Portfolio',stakeholders:'Stakeholders',capacity:'Team Capacity',escalations:'Escalations',risks:'Risk Register',decisions:'Decision Log',actions:'Action Items',milestones:'Milestone Tracker',budget:'Budget Tracker',changes:'Change Requests',meetings:'Meeting Cadence',comms:'Comms Log',lessons:'Lessons Learned',raid:'RAID Log',velocity:'Sprint Velocity',ai:'AI Assist',jira:'JIRA',integrations:'Integrations',dependencies:'Dependency Map',changeRequests:'Change Requests',commslog:'Comms Log',lessonslearned:'Lessons Learned',github:'GitHub & CI/CD',calendar:'Calendar & Meetings',confluence:'Confluence'};
+const SECTION_TITLES={dashboard:'Executive Dashboard',portfolio:'Portfolio',stakeholders:'Stakeholders',capacity:'Team Capacity',escalations:'Escalations',risks:'Risk Register',decisions:'Decision Log',actions:'Action Items',milestones:'Milestone Tracker',budget:'Budget Tracker',changes:'Change Requests',meetings:'Meeting Cadence',comms:'Comms Log',lessons:'Lessons Learned',raid:'RAID Log',velocity:'Sprint Velocity',ai:'AI Assist',jira:'JIRA',integrations:'Integrations',dependencies:'Dependency Map',changeRequests:'Change Requests',commslog:'Comms Log',lessonslearned:'Lessons Learned',raidlog:'RAID Log',github:'GitHub',calendar:'Calendar',confluence:'Confluence','exec-report':'Executive Report Builder',health:'Program Health Scorecard',benefits:'Benefits Realization',okrs:'OKR / KPI Tracker',vendors:'Vendor Tracker',forecast:'Resource Forecasting',skills:'Skills Matrix'};
 
 function navigate(section,el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -338,13 +338,20 @@ function renderAll(){
   renderRisks(); renderDecisions(); renderActions(); renderMilestones();
   renderBudget(); renderChanges(); renderMeetings(); renderCommsLog();
   renderLessons(); renderRaid();
-  // New modules (graceful — only run if functions exist)
-  if(typeof renderActionItems==='function')   renderActionItems();
-  if(typeof renderDependencies==='function')  renderDependencies();
+  // New modules
+  if(typeof renderActionItems==='function')    renderActionItems();
+  if(typeof renderDependencies==='function')   renderDependencies();
   if(typeof renderChangeRequests==='function') renderChangeRequests();
   if(typeof renderLessonsLearned==='function') renderLessonsLearned();
-  if(typeof renderRAID==='function')          renderRAID();
-  if(typeof renderVelocity==='function')      renderVelocity();
+  if(typeof renderRAID==='function')           renderRAID();
+  if(typeof renderVelocity==='function')       renderVelocity();
+  if(typeof renderHealthScorecard==='function') renderHealthScorecard();
+  if(typeof renderReportBuilder==='function')  renderReportBuilder();
+  if(typeof renderResourceForecast==='function') renderResourceForecast();
+  if(typeof renderSkillsMatrix==='function')   renderSkillsMatrix();
+  if(typeof renderBenefits==='function')       renderBenefits();
+  if(typeof renderOKRs==='function')           renderOKRs();
+  if(typeof renderVendors==='function')        renderVendors();
   refreshProjectSelect();
 }
 

@@ -39,6 +39,13 @@
     <button class="nav-item" data-section="velocity"     onclick="navigate('velocity',this)"><i class="ti ti-chart-line"></i> Sprint Velocity</button>
     <div class="nav-label">Tools</div>
     <button class="nav-item" data-section="ai"           onclick="navigate('ai',this)"><i class="ti ti-sparkles"></i> AI Assist</button>
+    <button class="nav-item" data-section="exec-report"  onclick="navigate('exec-report',this)"><i class="ti ti-report"></i> Exec Report</button>
+    <button class="nav-item" data-section="health"       onclick="navigate('health',this)"><i class="ti ti-gauge"></i> Health Scores</button>
+    <button class="nav-item" data-section="benefits"     onclick="navigate('benefits',this)"><i class="ti ti-target"></i> Benefits</button>
+    <button class="nav-item" data-section="okrs"         onclick="navigate('okrs',this)"><i class="ti ti-chart-dots-3"></i> OKRs / KPIs</button>
+    <button class="nav-item" data-section="vendors"      onclick="navigate('vendors',this)"><i class="ti ti-building-store"></i> Vendors</button>
+    <button class="nav-item" data-section="forecast"     onclick="navigate('forecast',this)"><i class="ti ti-users-group"></i> Forecasting</button>
+    <button class="nav-item" data-section="skills"       onclick="navigate('skills',this)"><i class="ti ti-school"></i> Skills Matrix</button>
     <button class="nav-item" data-section="jira"         onclick="navigate('jira',this)"><i class="ti ti-brand-jira"></i> JIRA <span id="jira-nav-badge" class="nav-badge" style="display:none">Live</span></button>
     <button class="nav-item" data-section="github"       onclick="navigate('github',this)"><i class="ti ti-brand-github"></i> GitHub</button>
     <button class="nav-item" data-section="calendar"     onclick="navigate('calendar',this)"><i class="ti ti-calendar-stats"></i> Calendar</button>
@@ -453,6 +460,197 @@
       </div>
     </div>
 
+    <!-- EXECUTIVE REPORT BUILDER -->
+    <div class="section" id="section-exec-report">
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header"><span class="card-title">Report Configuration</span><button class="btn small" onclick="saveReportTemplate()"><i class="ti ti-device-floppy"></i> Save Template</button></div>
+        <div class="form-grid" style="margin-bottom:14px">
+          <div class="form-group"><label class="form-label">Report Period</label><select id="report-period" class="form-input"><option>Weekly</option><option>Bi-weekly</option><option>Monthly</option><option>Quarterly</option></select></div>
+          <div class="form-group"><label class="form-label">Audience</label><select id="report-audience" class="form-input"><option>Executive sponsors</option><option>Steering committee</option><option>Board</option><option>PMO</option><option>Client / external</option></select></div>
+          <div class="form-group full"><label class="form-label">Additional context from you (optional)</label><textarea id="report-notes" class="form-input" placeholder="Any specific points to highlight or context for this week's report..."></textarea></div>
+        </div>
+        <div class="form-label" style="margin-bottom:8px">Sections to include:</div>
+        <div class="report-sections-grid" id="report-sections-config"></div>
+        <button class="btn primary" onclick="generateExecutiveReport()"><i class="ti ti-sparkles"></i> Generate Executive Report</button>
+      </div>
+      <div class="ai-output-panel" id="exec-report-panel">
+        <div class="ai-output-label"><i class="ti ti-report"></i> Executive Report</div>
+        <div class="ai-output-text" id="exec-report-text"></div>
+        <div class="ai-output-actions">
+          <button class="btn small" onclick="copyOutput('exec-report-text')"><i class="ti ti-copy"></i> Copy</button>
+          <button class="btn small primary" onclick="exportToPptx('exec-report-panel')"><i class="ti ti-presentation"></i> PowerPoint</button>
+          <button class="btn small" onclick="exportPdf('exec-report-panel')"><i class="ti ti-file-type-pdf"></i> PDF</button>
+          <button class="btn small" onclick="sendReportSlack('exec-report-panel')"><i class="ti ti-brand-slack"></i> Slack</button>
+          <button class="btn small" onclick="sendReportTeams('exec-report-panel')"><i class="ti ti-brand-teams"></i> Teams</button>
+          <button class="btn small" onclick="emailReport('exec-report-panel')"><i class="ti ti-mail"></i> Email</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEALTH SCORECARD -->
+    <div class="section" id="section-health">
+      <div class="metrics">
+        <div class="metric-card"><div class="metric-label">Portfolio Avg Score</div><div class="metric-value blue" id="hs-avg">—</div></div>
+        <div class="metric-card"><div class="metric-label">Green (≥75)</div><div class="metric-value green" id="hs-green">0</div></div>
+        <div class="metric-card"><div class="metric-label">Amber (50-74)</div><div class="metric-value amber" id="hs-amber">0</div></div>
+        <div class="metric-card"><div class="metric-label">Red (&lt;50)</div><div class="metric-value red" id="hs-red">0</div></div>
+      </div>
+      <div class="ai-output-panel" id="health-ai-panel">
+        <div class="ai-output-label"><i class="ti ti-sparkles"></i> AI Health Analysis</div>
+        <div class="ai-output-text" id="health-ai-text"></div>
+        <div class="ai-output-actions">
+          <button class="btn small" onclick="copyOutput('health-ai-text')"><i class="ti ti-copy"></i> Copy</button>
+          <button class="btn small primary" onclick="exportToPptx('health-ai-panel')"><i class="ti ti-presentation"></i> PowerPoint</button>
+          <button class="btn small" onclick="exportPdf('health-ai-panel')"><i class="ti ti-file-type-pdf"></i> PDF</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Program Health Scorecards</span>
+          <div class="card-actions">
+            <button class="btn small primary" onclick="aiHealthAnalysis()"><i class="ti ti-sparkles"></i> AI Analysis</button>
+            <button class="btn small" onclick="renderHealthScorecard()"><i class="ti ti-refresh"></i> Refresh</button>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--tx2);margin-bottom:14px">Scores are automatically calculated from your portfolio, budget, risk, escalation, and capacity data.</p>
+        <div class="health-grid" id="health-scorecard-grid"></div>
+      </div>
+    </div>
+
+    <!-- BENEFITS REALIZATION -->
+    <div class="section" id="section-benefits">
+      <div class="metrics">
+        <div class="metric-card"><div class="metric-label">Total Benefits</div><div class="metric-value blue" id="ben-total">0</div></div>
+        <div class="metric-card"><div class="metric-label">Achieved</div><div class="metric-value green" id="ben-achieved">0</div></div>
+        <div class="metric-card"><div class="metric-label">In Progress</div><div class="metric-value amber" id="ben-pending">0</div></div>
+        <div class="metric-card"><div class="metric-label">Financial Realized</div><div class="metric-value green" id="ben-financial">$0</div></div>
+      </div>
+      <div class="ai-output-panel" id="ben-ai-panel">
+        <div class="ai-output-label"><i class="ti ti-sparkles"></i> Benefits Analysis</div>
+        <div class="ai-output-text" id="ben-ai-text"></div>
+        <div class="ai-output-actions">
+          <button class="btn small" onclick="copyOutput('ben-ai-text')"><i class="ti ti-copy"></i> Copy</button>
+          <button class="btn small primary" onclick="exportToPptx('ben-ai-panel')"><i class="ti ti-presentation"></i> PowerPoint</button>
+          <button class="btn small" onclick="exportPdf('ben-ai-panel')"><i class="ti ti-file-type-pdf"></i> PDF</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Benefits Realization Register</span>
+          <div class="card-actions">
+            <button class="btn small primary" onclick="aiBenefitsAnalysis()"><i class="ti ti-sparkles"></i> AI Analysis</button>
+            <button class="btn small" onclick="openAddBenefit()"><i class="ti ti-plus"></i> Add Benefit</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Benefit</th><th>Project</th><th>Type</th><th>Projected</th><th>Actual</th><th>Realization</th><th>Target Date</th><th>Status</th><th>Owner</th><th></th></tr></thead>
+        <tbody id="benefits-tbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- OKRs / KPIs -->
+    <div class="section" id="section-okrs">
+      <div class="metrics">
+        <div class="metric-card"><div class="metric-label">Total OKRs/KPIs</div><div class="metric-value blue" id="okr-total">0</div></div>
+        <div class="metric-card"><div class="metric-label">Achieved</div><div class="metric-value green" id="okr-achieved">0</div></div>
+        <div class="metric-card"><div class="metric-label">On Track</div><div class="metric-value green" id="okr-ontrack">0</div></div>
+        <div class="metric-card"><div class="metric-label">At Risk</div><div class="metric-value red" id="okr-atrisk">0</div></div>
+      </div>
+      <div class="ai-output-panel" id="okr-ai-panel">
+        <div class="ai-output-label"><i class="ti ti-sparkles"></i> OKR Analysis</div>
+        <div class="ai-output-text" id="okr-ai-text"></div>
+        <div class="ai-output-actions">
+          <button class="btn small" onclick="copyOutput('okr-ai-text')"><i class="ti ti-copy"></i> Copy</button>
+          <button class="btn small primary" onclick="exportToPptx('okr-ai-panel')"><i class="ti ti-presentation"></i> PowerPoint</button>
+          <button class="btn small" onclick="exportPdf('okr-ai-panel')"><i class="ti ti-file-type-pdf"></i> PDF</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">OKR / KPI Tracker</span>
+          <div class="card-actions">
+            <select class="select-mini" onchange="renderOKRs(this.value)"><option value="all">All</option><option value="OKR">OKRs</option><option value="KPI">KPIs</option><option value="In Progress">In Progress</option><option value="Achieved">Achieved</option></select>
+            <button class="btn small primary" onclick="aiOKRAnalysis()"><i class="ti ti-sparkles"></i> AI Analysis</button>
+            <button class="btn small" onclick="openAddOKR()"><i class="ti ti-plus"></i> Add OKR/KPI</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Type</th><th>Objective</th><th>Key Result</th><th>Project</th><th>Owner</th><th>Progress</th><th>Due</th><th>Status</th><th></th></tr></thead>
+        <tbody id="okr-tbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- VENDOR / CONTRACT TRACKER -->
+    <div class="section" id="section-vendors">
+      <div class="metrics">
+        <div class="metric-card"><div class="metric-label">Total Vendors</div><div class="metric-value blue" id="vm-total">0</div></div>
+        <div class="metric-card"><div class="metric-label">Active</div><div class="metric-value green" id="vm-active">0</div></div>
+        <div class="metric-card"><div class="metric-label">Expiring (90d)</div><div class="metric-value amber" id="vm-expiring">0</div></div>
+        <div class="metric-card"><div class="metric-label">Underperforming</div><div class="metric-value red" id="vm-atrisk">0</div></div>
+      </div>
+      <div class="ai-output-panel" id="vendor-ai-panel">
+        <div class="ai-output-label"><i class="ti ti-sparkles"></i> Vendor Analysis</div>
+        <div class="ai-output-text" id="vendor-ai-text"></div>
+        <div class="ai-output-actions">
+          <button class="btn small" onclick="copyOutput('vendor-ai-text')"><i class="ti ti-copy"></i> Copy</button>
+          <button class="btn small primary" onclick="exportToPptx('vendor-ai-panel')"><i class="ti ti-presentation"></i> PowerPoint</button>
+          <button class="btn small" onclick="exportPdf('vendor-ai-panel')"><i class="ti ti-file-type-pdf"></i> PDF</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Vendor & Contract Register</span>
+          <div class="card-actions">
+            <select class="select-mini" onchange="renderVendors(this.value)"><option value="all">All</option><option value="Active">Active</option><option value="At Risk">At Risk</option><option value="Expired">Expired</option></select>
+            <button class="btn small primary" onclick="aiVendorAnalysis()"><i class="ti ti-sparkles"></i> AI Analysis</button>
+            <button class="btn small" onclick="openAddVendor()"><i class="ti ti-plus"></i> Add Vendor</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Vendor</th><th>Category</th><th>Project</th><th>Contract Value</th><th>Start</th><th>Expiry</th><th>Performance</th><th>SLA Terms</th><th>Status</th><th></th></tr></thead>
+        <tbody id="vendors-tbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- RESOURCE FORECASTING -->
+    <div class="section" id="section-forecast">
+      <div class="metrics">
+        <div class="metric-card"><div class="metric-label">Team Members</div><div class="metric-value blue" id="rf-headcount">0</div></div>
+        <div class="metric-card"><div class="metric-label">Current Month Avg</div><div class="metric-value amber" id="rf-avg">0%</div></div>
+        <div class="metric-card"><div class="metric-label">Overallocated</div><div class="metric-value red" id="rf-over">0</div></div>
+        <div class="metric-card"><div class="metric-label">Forecast Gaps</div><div class="metric-value amber" id="rf-gaps">0</div></div>
+      </div>
+      <div class="ai-output-panel" id="rf-ai-panel">
+        <div class="ai-output-label"><i class="ti ti-sparkles"></i> Forecast Analysis</div>
+        <div class="ai-output-text" id="rf-ai-text"></div>
+        <div class="ai-output-actions">
+          <button class="btn small" onclick="copyOutput('rf-ai-text')"><i class="ti ti-copy"></i> Copy</button>
+          <button class="btn small" onclick="exportPdf('rf-ai-panel')"><i class="ti ti-file-type-pdf"></i> PDF</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">6-Month Resource Forecast</span>
+          <div class="card-actions">
+            <button class="btn small primary" onclick="aiForecastAnalysis()"><i class="ti ti-sparkles"></i> AI Analysis</button>
+            <button class="btn small" onclick="openAddForecast();buildForecastModalMonths()"><i class="ti ti-plus"></i> Add Resource</button>
+          </div>
+        </div>
+        <div id="resource-forecast-grid"></div>
+        <div id="resource-forecast-table"></div>
+      </div>
+    </div>
+
+    <!-- SKILLS MATRIX -->
+    <div class="section" id="section-skills">
+      <div class="metrics">
+        <div class="metric-card"><div class="metric-label">Team Members</div><div class="metric-value blue" id="sm-members">0</div></div>
+        <div class="metric-card"><div class="metric-label">Skills Tracked</div><div class="metric-value blue" id="sm-skills">0</div></div>
+        <div class="metric-card"><div class="metric-label">Skill Gaps</div><div class="metric-value amber" id="sm-gaps">0</div></div>
+        <div class="metric-card"><div class="metric-label" style="font-size:10px">Skills with No Expert</div><div id="skills-gaps" style="font-size:11px;color:var(--tx2);margin-top:4px">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Team Skills Matrix</span>
+          <div class="card-actions">
+            <button class="btn small" onclick="openAddSkills()"><i class="ti ti-plus"></i> Add Member</button>
+          </div>
+        </div>
+        <div id="skills-matrix-container"></div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
 </div><!-- /app -->
@@ -644,6 +842,98 @@
   </div>
 </div>
 
+<!-- BENEFIT MODAL -->
+<div class="modal-overlay" id="benefit-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="ben-modal-title">Add Benefit</span><button class="modal-close" onclick="closeModal('benefit-modal')"><i class="ti ti-x"></i></button></div>
+    <div class="form-grid">
+      <div class="form-group full"><label class="form-label">Benefit title</label><input id="ben-title" class="form-input" type="text" placeholder="e.g. Annual cost savings from platform migration" /></div>
+      <div class="form-group"><label class="form-label">Project</label><input id="ben-project" class="form-input" type="text" /></div>
+      <div class="form-group"><label class="form-label">Type</label><select id="ben-type" class="form-input"><option>Financial</option><option>Strategic</option><option>Operational</option><option>Customer</option><option>Compliance</option></select></div>
+      <div class="form-group"><label class="form-label">Projected value</label><input id="ben-projected" class="form-input" type="number" placeholder="e.g. 500000" /></div>
+      <div class="form-group"><label class="form-label">Actual value (if known)</label><input id="ben-actual" class="form-input" type="number" placeholder="Leave blank if not yet measured" /></div>
+      <div class="form-group"><label class="form-label">Unit</label><input id="ben-unit" class="form-input" type="text" placeholder="$ or %" value="$" /></div>
+      <div class="form-group"><label class="form-label">Target realization date</label><input id="ben-target-date" class="form-input" type="date" /></div>
+      <div class="form-group"><label class="form-label">Status</label><select id="ben-status" class="form-input"><option>Projected</option><option>In Progress</option><option>Achieved</option><option>At Risk</option><option>Not Achieved</option></select></div>
+      <div class="form-group"><label class="form-label">Owner</label><input id="ben-owner" class="form-input" type="text" /></div>
+      <div class="form-group full"><label class="form-label">Notes</label><textarea id="ben-notes" class="form-input"></textarea></div>
+    </div>
+    <div class="form-actions"><button class="btn primary" onclick="saveBenefit()">Save</button><button class="btn" onclick="closeModal('benefit-modal')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- OKR MODAL -->
+<div class="modal-overlay" id="okr-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="okr-modal-title">Add OKR / KPI</span><button class="modal-close" onclick="closeModal('okr-modal')"><i class="ti ti-x"></i></button></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Type</label><select id="okr-type" class="form-input"><option>OKR</option><option>KPI</option></select></div>
+      <div class="form-group"><label class="form-label">Project / Initiative</label><input id="okr-project" class="form-input" type="text" placeholder="Leave blank for portfolio-level" /></div>
+      <div class="form-group full"><label class="form-label">Objective</label><input id="okr-objective" class="form-input" type="text" placeholder="What are we trying to achieve?" /></div>
+      <div class="form-group full"><label class="form-label">Key Result / Metric</label><input id="okr-key-result" class="form-input" type="text" placeholder="How will we measure success?" /></div>
+      <div class="form-group"><label class="form-label">Owner</label><input id="okr-owner" class="form-input" type="text" /></div>
+      <div class="form-group"><label class="form-label">Current Progress</label><input id="okr-progress" class="form-input" type="number" value="0" /></div>
+      <div class="form-group"><label class="form-label">Target</label><input id="okr-target" class="form-input" type="number" value="100" /></div>
+      <div class="form-group"><label class="form-label">Unit</label><input id="okr-unit" class="form-input" type="text" placeholder="% or number" value="%" /></div>
+      <div class="form-group"><label class="form-label">Status</label><select id="okr-status" class="form-input"><option>In Progress</option><option>On Track</option><option>At Risk</option><option>Achieved</option><option>Deferred</option></select></div>
+      <div class="form-group"><label class="form-label">Due Date</label><input id="okr-due" class="form-input" type="date" /></div>
+      <div class="form-group full"><label class="form-label">Notes</label><textarea id="okr-notes" class="form-input"></textarea></div>
+    </div>
+    <div class="form-actions"><button class="btn primary" onclick="saveOKR()">Save</button><button class="btn" onclick="closeModal('okr-modal')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- VENDOR MODAL -->
+<div class="modal-overlay" id="vendor-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="vendor-modal-title">Add Vendor</span><button class="modal-close" onclick="closeModal('vendor-modal')"><i class="ti ti-x"></i></button></div>
+    <div class="form-grid">
+      <div class="form-group full"><label class="form-label">Vendor name</label><input id="ven-name" class="form-input" type="text" /></div>
+      <div class="form-group"><label class="form-label">Category</label><input id="ven-category" class="form-input" type="text" placeholder="e.g. Technology, Cloud, Services" /></div>
+      <div class="form-group"><label class="form-label">Primary project</label><input id="ven-project" class="form-input" type="text" /></div>
+      <div class="form-group"><label class="form-label">Contract value ($)</label><input id="ven-value" class="form-input" type="number" /></div>
+      <div class="form-group"><label class="form-label">Contract start</label><input id="ven-start" class="form-input" type="date" /></div>
+      <div class="form-group"><label class="form-label">Contract end</label><input id="ven-end" class="form-input" type="date" /></div>
+      <div class="form-group"><label class="form-label">Performance score (0-100)</label><input id="ven-performance" class="form-input" type="number" min="0" max="100" value="85" /></div>
+      <div class="form-group"><label class="form-label">Status</label><select id="ven-status" class="form-input"><option>Active</option><option>At Risk</option><option>Under Review</option><option>Expired</option><option>Terminated</option></select></div>
+      <div class="form-group full"><label class="form-label">SLA terms</label><input id="ven-sla" class="form-input" type="text" placeholder="e.g. 99.9% uptime, 4hr response time" /></div>
+      <div class="form-group full"><label class="form-label">Key contact</label><input id="ven-contact" class="form-input" type="text" /></div>
+      <div class="form-group full"><label class="form-label">Notes</label><textarea id="ven-notes" class="form-input"></textarea></div>
+    </div>
+    <div class="form-actions"><button class="btn primary" onclick="saveVendor()">Save</button><button class="btn" onclick="closeModal('vendor-modal')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- RESOURCE FORECAST MODAL -->
+<div class="modal-overlay" id="forecast-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="rf-modal-title">Add Resource Forecast</span><button class="modal-close" onclick="closeModal('forecast-modal')"><i class="ti ti-x"></i></button></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Name</label><input id="rf-name" class="form-input" type="text" /></div>
+      <div class="form-group"><label class="form-label">Role</label><input id="rf-role" class="form-input" type="text" placeholder="e.g. Senior Developer" /></div>
+      <div class="form-group full"><label class="form-label">Primary project</label><input id="rf-project" class="form-input" type="text" /></div>
+    </div>
+    <div class="form-label" style="margin:10px 0 6px">Monthly allocation (%):</div>
+    <div class="rf-month-grid" id="rf-months-grid"></div>
+    <div class="form-group" style="margin-top:10px"><label class="form-label">Notes</label><textarea id="rf-notes" class="form-input"></textarea></div>
+    <div class="form-actions"><button class="btn primary" onclick="saveForecast()">Save</button><button class="btn" onclick="closeModal('forecast-modal')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- SKILLS MODAL -->
+<div class="modal-overlay" id="skills-modal">
+  <div class="modal" style="width:560px">
+    <div class="modal-header"><span class="modal-title" id="sm-modal-title">Add Team Member Skills</span><button class="modal-close" onclick="closeModal('skills-modal')"><i class="ti ti-x"></i></button></div>
+    <div class="form-grid" style="margin-bottom:12px">
+      <div class="form-group"><label class="form-label">Name</label><input id="sm-name" class="form-input" type="text" /></div>
+      <div class="form-group"><label class="form-label">Role</label><input id="sm-role" class="form-input" type="text" /></div>
+    </div>
+    <div class="form-label" style="margin-bottom:8px">Skill levels:</div>
+    <div class="form-grid" id="sm-skills-grid"></div>
+    <div class="form-actions" style="margin-top:12px"><button class="btn primary" onclick="saveSkills()">Save</button><button class="btn" onclick="closeModal('skills-modal')">Cancel</button></div>
+  </div>
+</div>
+
 <script src="data.js"></script>
 <script src="ai.js"></script>
 <script src="app.js"></script>
@@ -651,5 +941,8 @@
 <script src="modules/governance.js"></script>
 <script src="modules/planning.js"></script>
 <script src="modules/integrations-ext.js"></script>
+<script src="modules/reporting.js"></script>
+<script src="modules/resources.js"></script>
+<script src="modules/business.js"></script>
 </body>
 </html>

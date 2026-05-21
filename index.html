@@ -265,6 +265,45 @@
 
     <!-- INTEGRATIONS -->
     <div class="section" id="section-integrations">
+
+      <!-- Share Links -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header"><span class="card-title"><i class="ti ti-share" style="margin-right:5px"></i>Shareable Links</span></div>
+        <p style="font-size:12px;color:var(--tx2);margin-bottom:14px;line-height:1.6">Share these links with different audiences. Each URL controls which features are visible and what data is shown.</p>
+        <div id="share-links-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+        <script>
+          window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+              const grid = document.getElementById('share-links-grid');
+              if (!grid || typeof FEATURES === 'undefined') return;
+              const links = FEATURES.getShareableLinks();
+              const descs = {
+                full:       { label:'Full App', desc:'All features. For your daily use.', icon:'ti-layout-dashboard', color:'var(--blue)' },
+                demo:       { label:'Demo Mode', desc:'Sample data, curated feature set. Share with prospects.', icon:'ti-presentation', color:'var(--green)' },
+                basic:      { label:'Basic Mode', desc:'Core EDM features only. Good for onboarding new users.', icon:'ti-layout-grid', color:'var(--amber)' },
+                delivery:   { label:'Delivery Mode', desc:'Portfolio, milestones, actions, capacity, velocity.', icon:'ti-rocket', color:'var(--blue)' },
+                governance: { label:'Governance Mode', desc:'RAID, decisions, change requests, comms log.', icon:'ti-shield', color:'var(--purple)' },
+                reporting:  { label:'Reporting Mode', desc:'Executive reports, health scores, benefits, OKRs.', icon:'ti-report', color:'var(--teal)' }
+              };
+              grid.innerHTML = Object.entries(links).map(([key, url]) => {
+                const d = descs[key] || { label:key, desc:'', icon:'ti-link', color:'var(--blue)' };
+                return `<div style="background:var(--bg2);border-radius:var(--rmd);padding:12px 14px;display:flex;flex-direction:column;gap:6px">
+                  <div style="display:flex;align-items:center;gap:7px">
+                    <i class="ti ${d.icon}" style="color:${d.color};font-size:15px"></i>
+                    <span style="font-size:13px;font-weight:500">${d.label}</span>
+                  </div>
+                  <div style="font-size:11px;color:var(--tx2)">${d.desc}</div>
+                  <div style="display:flex;gap:6px;margin-top:2px">
+                    <input type="text" readonly value="${url}" style="flex:1;padding:4px 8px;font-size:11px;border:0.5px solid var(--bd2);border-radius:var(--rmd);background:var(--bg1);color:var(--tx2);font-family:monospace" onclick="this.select()" />
+                    <button class="btn small" onclick="navigator.clipboard.writeText('${url}').then(()=>showToast('Link copied'))" style="padding:4px 10px;font-size:11px"><i class="ti ti-copy"></i></button>
+                  </div>
+                </div>`;
+              }).join('');
+            }, 200);
+          });
+        </script>
+      </div>
+
       <div class="two-col">
         <div class="card"><div class="card-header"><span class="card-title"><i class="ti ti-brand-slack" style="margin-right:5px"></i>Slack</span><span id="slack-status" class="int-status off">Not configured</span></div><div class="form-group" style="margin-bottom:10px"><label class="form-label">Incoming Webhook URL</label><input id="slack-webhook" class="form-input" type="text" placeholder="https://hooks.slack.com/services/..."/><div class="form-hint">api.slack.com/apps — Incoming Webhooks</div></div><button class="btn primary small" onclick="saveIntegrations()">Save</button></div>
         <div class="card"><div class="card-header"><span class="card-title"><i class="ti ti-brand-teams" style="margin-right:5px"></i>Microsoft Teams</span><span id="teams-status" class="int-status off">Not configured</span></div><div class="form-group" style="margin-bottom:10px"><label class="form-label">Incoming Webhook URL</label><input id="teams-webhook" class="form-input" type="text" placeholder="https://your-tenant.webhook.office.com/..."/><div class="form-hint">Teams channel settings — Connectors — Incoming Webhook</div></div><button class="btn primary small" onclick="saveIntegrations()">Save</button></div>
@@ -1012,5 +1051,6 @@
 <script src="modules/resources.js"></script>
 <script src="modules/business.js"></script>
 <script src="modules/servicenow.js"></script>
+<script src="modules/features.js"></script>
 </body>
 </html>

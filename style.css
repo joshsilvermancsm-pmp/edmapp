@@ -166,7 +166,16 @@ textarea.form-input{resize:vertical;min-height:66px}
 .pdf-choice{animation:fadeIn 0.15s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 
-/* HEALTH SCORECARD */
+/* MEETING NOTES */
+.meeting-note-card{background:var(--bg1);border:0.5px solid var(--bd2);border-radius:var(--rlg);margin-bottom:10px;overflow:hidden}
+.meeting-note-header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;gap:12px}
+.meeting-note-header:hover{background:var(--bg2)}
+.meeting-note-body{padding:14px 16px 16px;border-top:0.5px solid var(--bd2)}
+.meeting-note-meta{font-size:11px;color:var(--tx2);margin-bottom:12px;display:flex;gap:16px;flex-wrap:wrap}
+.meeting-note-meta i{margin-right:4px}
+.meeting-note-actions-ref{background:var(--bg2);border-radius:var(--rmd);padding:10px 12px;margin-bottom:12px}
+.meeting-note-content{font-size:13px;line-height:1.8;color:var(--tx1);white-space:pre-wrap;font-family:var(--sans)}
+.meeting-note-footer{margin-top:10px}
 .health-card{background:var(--bg1);border:0.5px solid var(--bd2);border-radius:var(--rlg);padding:14px 16px}
 .health-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
 .health-card-name{font-size:13px;font-weight:500;margin-bottom:3px}

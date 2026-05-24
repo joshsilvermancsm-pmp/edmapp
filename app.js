@@ -5,7 +5,7 @@ function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('open');});
 
-const SECTION_TITLES={dashboard:'Executive Dashboard',portfolio:'Portfolio',stakeholders:'Stakeholders',capacity:'Team Capacity',escalations:'Escalations',risks:'Risk Register',decisions:'Decision Log',actions:'Action Items',milestones:'Milestone Tracker',budget:'Budget Tracker',changes:'Change Requests',meetings:'Meeting Cadence',comms:'Comms Log',lessons:'Lessons Learned',raid:'RAID Log',velocity:'Sprint Velocity',ai:'AI Assist',jira:'JIRA',integrations:'Integrations',dependencies:'Dependency Map',changeRequests:'Change Requests',commslog:'Comms Log',lessonslearned:'Lessons Learned',raidlog:'RAID Log',github:'GitHub',calendar:'Calendar',confluence:'Confluence','exec-report':'Executive Report Builder',health:'Program Health Scorecard',benefits:'Benefits Realization',okrs:'OKR / KPI Tracker',vendors:'Vendor Tracker',forecast:'Resource Forecasting',skills:'Skills Matrix',servicenow:'ServiceNow'};
+const SECTION_TITLES={dashboard:'Executive Dashboard',portfolio:'Portfolio',stakeholders:'Stakeholders',capacity:'Team Capacity',escalations:'Escalations',risks:'Risk Register',decisions:'Decision Log',actions:'Action Items',milestones:'Milestone Tracker',budget:'Budget Tracker',changes:'Change Requests',meetings:'Meeting Cadence',comms:'Comms Log',lessons:'Lessons Learned',raid:'RAID Log',velocity:'Sprint Velocity',ai:'AI Assist',jira:'JIRA',integrations:'Integrations',dependencies:'Dependency Map',changeRequests:'Change Requests',commslog:'Comms Log',lessonslearned:'Lessons Learned',raidlog:'RAID Log',github:'GitHub',calendar:'Calendar',confluence:'Confluence','exec-report':'Executive Report Builder',health:'Program Health Scorecard',benefits:'Benefits Realization',okrs:'OKR / KPI Tracker',vendors:'Vendor Tracker',forecast:'Resource Forecasting',skills:'Skills Matrix',servicenow:'ServiceNow',meetingnotes:'Meeting Notes'};
 
 function navigate(section,el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -244,6 +244,153 @@ function editMeeting(id){const m=state.meetings.find(x=>x.id===id);if(!m)return;
 function saveMeeting(){const name=document.getElementById('mf2-name').value.trim();if(!name){showToast('Name required','error');return;}const d={name,cadence:document.getElementById('mf2-cadence').value,day:document.getElementById('mf2-day').value,time:document.getElementById('mf2-time').value,attendees:document.getElementById('mf2-attendees').value.trim(),lastRun:document.getElementById('mf2-last').value,nextRun:document.getElementById('mf2-next').value,notes:document.getElementById('mf2-notes').value.trim()};if(_eMtgId){const i=state.meetings.findIndex(x=>x.id===_eMtgId);state.meetings[i]={...state.meetings[i],...d};}else{d.id=state.nextId.meetings++;state.meetings.push(d);}saveState();closeModal('meeting-modal');renderMeetings();showToast('Saved');}
 function deleteMeeting(id){if(!confirm('Delete?'))return;state.meetings=state.meetings.filter(x=>x.id!==id);saveState();renderMeetings();}
 
+function renderMeetingNotes(filter='all'){
+  const notes=state.meetingNotes||[];
+  const list=filter==='all'?notes:notes.filter(m=>m.project===filter||m.type===filter);
+  const sorted=[...list].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const container=document.getElementById('meeting-notes-list');
+  if(!container) return;
+  if(!sorted.length){container.innerHTML='<div class="empty-state"><i class="ti ti-notes"></i><p>No meeting notes.</p></div>';return;}
+  const TYPE_COLOR={
+    'Weekly Standup':'blue','Emergency Review':'red','Escalation Review':'amber',
+    'Steering Committee':'purple','Go-Live Review':'green','Risk Review':'amber',
+    'Budget Review':'teal','Technical Review':'blue'
+  };
+  container.innerHTML=sorted.map(m=>`
+    <div class="meeting-note-card" id="mncard-${m.id}">
+      <div class="meeting-note-header" onclick="toggleMeetingNote(${m.id})">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+          <span class="badge ${TYPE_COLOR[m.type]||'gray'}" style="flex-shrink:0">${m.type}</span>
+          <span style="font-weight:500;font-size:13px">${m.title}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;flex-shrink:0">
+          <span style="font-size:11px;color:var(--tx2)">${m.date}</span>
+          <span style="font-size:11px;color:var(--tx2)">${m.project}</span>
+          <span style="font-size:11px;color:var(--tx2)">${m.facilitator}</span>
+          <div style="display:flex;gap:4px">
+            <button class="icon-btn" onclick="event.stopPropagation();exportMeetingNotePdf(${m.id})" title="Export PDF"><i class="ti ti-file-type-pdf" style="font-size:14px"></i></button>
+            <button class="icon-btn" onclick="event.stopPropagation();aiSummarizeMeeting(${m.id})" title="AI Summary"><i class="ti ti-sparkles" style="font-size:14px"></i></button>
+            <button class="icon-btn danger" onclick="event.stopPropagation();deleteMeetingNote(${m.id})" title="Delete"><i class="ti ti-trash" style="font-size:14px"></i></button>
+          </div>
+          <i class="ti ti-chevron-down" style="font-size:14px;color:var(--tx3);transition:transform 0.2s" id="mn-chev-${m.id}"></i>
+        </div>
+      </div>
+      <div class="meeting-note-body" id="mnbody-${m.id}" style="display:none">
+        <div class="meeting-note-meta">
+          <span><i class="ti ti-users" style="font-size:12px"></i> ${m.attendees}</span>
+        </div>
+        ${m.actionItems?.length?`<div class="meeting-note-actions-ref">
+          <span style="font-size:11px;font-weight:500;color:var(--tx2)">LINKED ACTION ITEMS</span>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+            ${m.actionItems.map(aid=>{
+              const a=(state.actionItems||[]).find(x=>x.id===aid);
+              if(!a) return '';
+              const sc={Open:'red','In Progress':'blue',Done:'green',Blocked:'amber',Deferred:'gray'};
+              return `<span class="badge ${sc[a.status]||'gray'}" style="font-size:11px">${a.title} — ${a.owner}</span>`;
+            }).join('')}
+          </div>
+        </div>`:''}
+        <div class="meeting-note-content">${m.notes.replace(/\n/g,'<br>')}</div>
+        <div class="meeting-note-footer">
+          <div id="mn-ai-${m.id}" class="ai-output-panel" style="display:none;margin-top:12px">
+            <div class="ai-output-label"><i class="ti ti-sparkles"></i> AI Meeting Summary</div>
+            <div class="ai-output-text" id="mn-ai-text-${m.id}"></div>
+            <div class="ai-output-actions">
+              <button class="btn small" onclick="copyOutput('mn-ai-text-${m.id}')"><i class="ti ti-copy"></i> Copy</button>
+              <button class="btn small" onclick="sendReportSlack('mn-ai-${m.id}')"><i class="ti ti-brand-slack"></i> Slack</button>
+              <button class="btn small" onclick="emailReport('mn-ai-${m.id}')"><i class="ti ti-mail"></i> Email</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleMeetingNote(id){
+  const body=document.getElementById('mnbody-'+id);
+  const chev=document.getElementById('mn-chev-'+id);
+  if(!body) return;
+  const open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  if(chev) chev.style.transform=open?'rotate(180deg)':'rotate(0deg)';
+}
+
+function deleteMeetingNote(id){
+  if(!confirm('Delete this meeting note?')) return;
+  if(!state.meetingNotes) return;
+  state.meetingNotes=state.meetingNotes.filter(m=>m.id!==id);
+  saveState(); renderMeetingNotes();
+}
+
+async function aiSummarizeMeeting(id){
+  const m=(state.meetingNotes||[]).find(x=>x.id===id); if(!m) return;
+  const panel=document.getElementById('mn-ai-'+id);
+  const textEl=document.getElementById('mn-ai-text-'+id);
+  if(!panel||!textEl) return;
+  // Ensure body is open
+  document.getElementById('mnbody-'+id).style.display='block';
+  document.getElementById('mn-chev-'+id).style.transform='rotate(180deg)';
+  panel.style.display='block'; textEl.className='ai-output-text loading'; textEl.textContent='Generating summary...';
+  const linkedActions=(m.actionItems||[]).map(aid=>{
+    const a=(state.actionItems||[]).find(x=>x.id===aid);
+    return a?`- ${a.title} (${a.owner}, due ${a.dueDate||'TBD'}, ${a.status})`:null;
+  }).filter(Boolean).join('\n');
+  const result=await callAI(
+    `Summarize this meeting for distribution to stakeholders who did not attend.\n\nMeeting: ${m.title}\nDate: ${m.date}\nFacilitator: ${m.facilitator}\nAttendees: ${m.attendees}\nProject: ${m.project}\n\nMeeting notes:\n${m.notes}\n\n${linkedActions?'Linked action items:\n'+linkedActions:''}\n\nProvide: 3-sentence executive summary, key decisions made, action items with owners and due dates, and any risks or escalations raised. Plain text only.`
+  );
+  if(result){
+    textEl.className='ai-output-text'; textEl.textContent=result;
+    panel.setAttribute('data-report',result); panel.setAttribute('data-title',m.title);
+  }
+}
+
+function exportMeetingNotePdf(id){
+  const m=(state.meetingNotes||[]).find(x=>x.id===id); if(!m) return;
+  if(typeof window.jspdf==='undefined'){ showToast('jsPDF not loaded','error'); return; }
+  const doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  let y=22;
+  // Header
+  doc.setFillColor(24,95,165); doc.rect(0,0,210,22,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(12); doc.setFont('helvetica','bold');
+  doc.text('Meeting Notes',12,9);
+  doc.setFontSize(8); doc.setFont('helvetica','normal');
+  doc.text(m.date+' | '+m.type+' | '+m.project,12,16);
+  // Title
+  doc.setTextColor(26,26,24); doc.setFontSize(16); doc.setFont('helvetica','bold');
+  doc.text(m.title,12,y+10); y+=18;
+  // Meta
+  doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(107,107,103);
+  doc.text('Facilitator: '+m.facilitator,12,y); y+=5;
+  doc.text('Attendees: '+m.attendees,12,y,{maxWidth:186}); y+=10;
+  doc.setDrawColor(230,228,220); doc.setLineWidth(0.3); doc.line(12,y,198,y); y+=6;
+  // Content
+  doc.setTextColor(26,26,24); doc.setFontSize(10); doc.setFont('helvetica','normal');
+  const lines=doc.splitTextToSize(m.notes,186);
+  lines.forEach(line=>{
+    if(y>270){ doc.addPage(); y=16; }
+    doc.text(line,12,y); y+=5;
+  });
+  // Action items
+  if(m.actionItems?.length){
+    if(y>250){ doc.addPage(); y=16; }
+    y+=4; doc.setFillColor(245,245,243); doc.rect(12,y-3,186,7,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(107,107,103);
+    doc.text('LINKED ACTION ITEMS',15,y+1); y+=8;
+    doc.setFont('helvetica','normal'); doc.setTextColor(26,26,24);
+    m.actionItems.forEach(aid=>{
+      const a=(state.actionItems||[]).find(x=>x.id===aid); if(!a) return;
+      if(y>270){ doc.addPage(); y=16; }
+      doc.text(`• ${a.title} — ${a.owner} — Due: ${a.dueDate||'TBD'} — ${a.status}`,14,y,{maxWidth:184}); y+=6;
+    });
+  }
+  // Footer
+  doc.setFontSize(8); doc.setTextColor(158,158,154);
+  doc.text('Enterprise Delivery Management | Confidential',12,287);
+  doc.text(new Date().toLocaleDateString(),198,287,{align:'right'});
+  doc.save('MeetingNotes-'+m.title.replace(/[^a-z0-9]/gi,'_').slice(0,40)+'.pdf');
+  showToast('PDF saved');
+}
+
 // ─── COMMS LOG ────────────────────────────────────────────────────────────────
 
 function renderCommsLog(){const tbody=document.getElementById('comms-tbody');tbody.innerHTML=state.commsLog.length?state.commsLog.map(c=>`<tr><td style="font-weight:500">${c.subject}</td><td style="color:var(--tx2);max-width:140px">${c.recipient}</td><td><span class="badge blue">${c.channel}</span></td><td style="color:var(--tx2);white-space:nowrap">${c.date}</td><td style="color:var(--tx2)">${c.project}</td><td><span class="badge gray">${c.type}</span></td><td style="color:var(--tx2);font-size:11px;max-width:160px">${c.summary}</td><td><div style="display:flex;gap:3px"><button class="icon-btn" onclick="editComms(${c.id})"><i class="ti ti-edit"></i></button><button class="icon-btn danger" onclick="deleteComms(${c.id})"><i class="ti ti-trash"></i></button></div></td></tr>`).join(''):`<tr><td colspan="8"><div class="empty-state"><i class="ti ti-mail"></i><p>No communications logged.</p></div></td></tr>`;}
@@ -345,7 +492,7 @@ function renderAll(){
   if(typeof renderLessonsLearned==='function') renderLessonsLearned();
   if(typeof renderRAID==='function')           renderRAID();
   if(typeof renderVelocity==='function')       renderVelocity();
-  if(typeof renderHealthScorecard==='function') renderHealthScorecard();
+  if(typeof renderMeetingNotes==='function')   renderMeetingNotes();
   if(typeof renderReportBuilder==='function')  renderReportBuilder();
   if(typeof renderResourceForecast==='function') renderResourceForecast();
   if(typeof renderSkillsMatrix==='function')   renderSkillsMatrix();

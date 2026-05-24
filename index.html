@@ -34,6 +34,7 @@
     <button class="nav-item" data-section="raidlog"      onclick="navigate('raidlog',this)"><i class="ti ti-table"></i> RAID Log</button>
     <div class="nav-label">Governance</div>
     <button class="nav-item" data-section="meetings"     onclick="navigate('meetings',this)"><i class="ti ti-calendar"></i> Meetings</button>
+    <button class="nav-item" data-section="meetingnotes" onclick="navigate('meetingnotes',this)"><i class="ti ti-notes"></i> Meeting Notes</button>
     <button class="nav-item" data-section="commslog"     onclick="navigate('commslog',this)"><i class="ti ti-messages"></i> Comms Log</button>
     <button class="nav-item" data-section="lessonslearned" onclick="navigate('lessonslearned',this)"><i class="ti ti-book"></i> Lessons Learned</button>
     <button class="nav-item" data-section="velocity"     onclick="navigate('velocity',this)"><i class="ti ti-chart-line"></i> Sprint Velocity</button>
@@ -688,6 +689,30 @@
           </div>
         </div>
         <div id="skills-matrix-container"></div>
+      </div>
+    </div>
+
+    <!-- MEETING NOTES -->
+    <div class="section" id="section-meetingnotes">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Meeting Notes</span>
+          <div class="card-actions">
+            <select class="select-mini" onchange="renderMeetingNotes(this.value)">
+              <option value="all">All meetings</option>
+              <option value="Weekly Standup">Weekly Standup</option>
+              <option value="Steering Committee">Steering Committee</option>
+              <option value="Emergency Review">Emergency Review</option>
+              <option value="Escalation Review">Escalation Review</option>
+              <option value="Go-Live Review">Go-Live Review</option>
+              <option value="Budget Review">Budget Review</option>
+              <option value="Technical Review">Technical Review</option>
+              <option value="Risk Review">Risk Review</option>
+            </select>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--tx2);margin-bottom:14px">Click any meeting to expand notes. Each meeting shows linked action items and supports AI summarization, PDF export, and direct distribution.</p>
+        <div id="meeting-notes-list"></div>
       </div>
     </div>
 

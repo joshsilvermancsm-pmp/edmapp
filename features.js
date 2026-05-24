@@ -42,7 +42,8 @@ const FEATURES = {
     { id:'github',        label:'GitHub',                  nav:'github',        section:'section-github',        core:false },
     { id:'calendar',      label:'Calendar',                nav:'calendar',      section:'section-calendar',      core:false },
     { id:'confluence',    label:'Confluence',              nav:'confluence',    section:'section-confluence',    core:false },
-    { id:'integrations',  label:'Integrations',            nav:'integrations',  section:'section-integrations',  core:false }
+    { id:'integrations',  label:'Integrations',            nav:'integrations',  section:'section-integrations',  core:false },
+    { id:'meetingnotes',  label:'Meeting Notes',           nav:'meetingnotes',  section:'section-meetingnotes',  core:false }
   ],
 
   // ── Named profiles ────────────────────────────────────────────────────────────
@@ -52,7 +53,7 @@ const FEATURES = {
 
     demo: [
       'dashboard','portfolio','stakeholders','escalations','risks',
-      'health','exec-report','ai','milestones','decisions'
+      'health','exec-report','ai','milestones','decisions','meetingnotes'
     ],
 
     basic: [
@@ -298,11 +299,403 @@ const FEATURES = {
       {id:6, title:'DataStream real-time pipeline can be validated using synthetic test data',           project:'DataStream Analytics Engine',          owner:'Marcus Webb',    status:'Invalidated', impact:'Synthetic data missed edge cases caught only by real customer data. Design partner program added.',        notes:''}
     ],
 
+    // ── Meeting Notes ──────────────────────────────────────────────────────────
+    meetingNotes: [
+      {
+        id:1,
+        title:'Weekly Portfolio Standup — Week 21',
+        date:'2026-05-22',
+        type:'Weekly Standup',
+        project:'Portfolio',
+        facilitator:'Rachel Torres',
+        attendees:'Rachel Torres, Marcus Webb, Anika Patel, Jordan Kim, Elena Vasquez, Damon Clarke, Priya Nair, Chris Oduya',
+        status:'Completed',
+        notes:`AGENDA
+1. Project status round-robin
+2. Escalation review — Multi-Tenant P1 finding, AI SLA dispute
+3. Action item updates
+4. Upcoming milestones — Self-Serve Portal go-live June 2
+
+STATUS ROUND-ROBIN
+
+Nexus Platform Relaunch (Rachel Torres)
+Sprint 10 completed with 38/44 story points. 6 stories moved to Sprint 11 due to 2 engineers pulled to support multi-tenant security finding. Billing module dedicated team performing to plan. No change to August 29 go-live.
+
+DataStream Analytics Engine (Marcus Webb)
+Real-time pipeline stable in staging. ML model evaluation expanded to 8 scenarios — target is 15. 3 design partner customers confirmed for beta. On track for July 25 production release.
+
+CustomerOS CRM Replacement (Anika Patel)
+Field mapping audit complete — 3,200 undocumented custom fields identified. Phased migration proposal 80% drafted. Presenting to steering May 29. June 27 Phase 1 date at risk pending steering approval.
+
+DevSecOps Pipeline Modernization (Jordan Kim)
+SecureProbe Ltd approved as pen test substitute. Contract with legal now. Must be signed by May 27 to preserve June 2 test date. Pipeline build complete — waiting on pen test to proceed to go-live.
+
+Multi-Tenant SaaS Infrastructure (Elena Vasquez)
+P1 security finding confirmed. Architecture review board met May 21. IsoGuard Consulting engaged starting May 26. Engineering lead returns May 28. Architecture redesign sprint starts same day. Weekly CISO briefings confirmed.
+
+AI-Assisted Support Automation (Damon Clarke)
+GA formally deferred to August 1. Hallucination rate holding at 8.3%. VectorMind executive call booked May 26. Backup provider shortlist down to 2 vendors. Beta continues with 8 opt-in customers — no customer impact reported.
+
+Self-Serve Onboarding Portal (Priya Nair)
+6 checklist items remaining — all cosmetic. Go-live confirmed June 2. Hypercare team briefed. Comms sent to CS and marketing. On track.
+
+Enterprise SSO & Identity Federation (Chris Oduya)
+4 of 6 enterprise customers live. Workday SCIM token refresh issue under investigation — vendor support ticket open. Manual provisioning workaround in place for affected tenant. No customer-visible impact.
+
+DECISIONS MADE
+- DevSecOps pen test firm substitution approved (Jordan Kim / CISO sign-off)
+- Self-Serve Portal go-live confirmed June 2 (Priya Nair)
+
+ESCALATIONS REVIEWED
+- Multi-Tenant P1 security finding: Architecture review in progress. CISO engaged. Status: Active.
+- AI SLA breach: Formal notice sent. Executive call May 26. Status: In Review.`,
+        actionItems:[1,2,3,4,5,6]
+      },
+      {
+        id:2,
+        title:'Multi-Tenant Security Finding — Emergency Architecture Review',
+        date:'2026-05-21',
+        type:'Emergency Review',
+        project:'Multi-Tenant SaaS Infrastructure',
+        facilitator:'Elena Vasquez',
+        attendees:'Elena Vasquez, Derek Fontaine, Brandon Whitfield (CISO), Paul Grayson (CTO), IsoGuard Consulting (2 reps)',
+        status:'Completed',
+        notes:`CONTEXT
+External pen test on May 18 identified a P1 tenant data isolation vulnerability. Under specific edge-case conditions, API responses could include data from adjacent tenants. Confirmed reproducible in staging.
+
+FINDINGS PRESENTED
+- Vulnerability class: Tenant context leak via shared connection pool under high concurrency
+- Affected services: 3 core API endpoints (confirmed), potentially 2 additional under review
+- Current exposure: Staging environment only — production deployment paused
+- Customer impact: Zero confirmed incidents. Proactive detection before production.
+
+IsoGuard INITIAL ASSESSMENT
+Current architecture uses shared database connection pool with row-level security. Under concurrent load exceeding 800 req/sec, tenant context can bleed across connections. Fix options presented:
+  Option A: Connection pool isolation per tenant — 3 week implementation, low complexity
+  Option B: Full schema-per-tenant migration — 8 week implementation, eliminates class of risk
+  Option C: Sidecar proxy isolation — 4 week implementation, higher operational complexity
+
+DISCUSSION
+Brandon Whitfield: Option B is the right long-term answer but Option A can be implemented immediately to unblock production. Recommends dual-track: implement Option A now, plan Option B for Q4.
+Paul Grayson: Agreed. Cannot delay production indefinitely. Option A with independent verification acceptable.
+Derek Fontaine: Engineering can execute Option A in 3 weeks. Starts May 28 when lead engineer returns.
+
+DECISIONS MADE
+- Proceed with Option A (connection pool isolation) immediately
+- Option B (schema-per-tenant) added to Q4 roadmap
+- IsoGuard to independently verify Option A implementation before production deployment
+- No customer communication required at this stage — will reassess after Option A validated
+- Weekly CISO briefing confirmed every Thursday
+
+RISKS ACCEPTED
+- 3-week delay to multi-tenant production go-live
+- Engineering lead single point of failure acknowledged — senior architect backup assigned`,
+        actionItems:[1,2,8]
+      },
+      {
+        id:3,
+        title:'AI Support Automation — SLA Breach Review & Vendor Escalation Prep',
+        date:'2026-05-19',
+        type:'Escalation Review',
+        project:'AI-Assisted Support Automation',
+        facilitator:'Damon Clarke',
+        attendees:'Damon Clarke, Sandra Holloway (CPO), Natalie Osei (VP CS), Legal Representative',
+        status:'Completed',
+        notes:`PURPOSE
+Review VectorMind AI SLA breach status, agree on formal escalation approach, and align on customer communication for GA deferral.
+
+SLA BREACH SUMMARY
+Contract Section 4.2 specifies maximum 3% hallucination rate measured over rolling 30-day window. Current rate: 8.3% (validated by internal testing and independently confirmed by 3 beta customers). Breach confirmed as of May 10. Formal notice period: 14 days from notice to provide remediation plan.
+
+CUSTOMER IMPACT ASSESSMENT (Natalie Osei)
+8 beta customers have opt-in access. All briefed on experimental status. No production customers affected. 2 beta customers flagged incorrect responses — handled by CS, no escalations. NPS for beta: 6.2/10 — acceptable for experimental.
+
+GA DEFERRAL DECISION
+Sandra Holloway: GA cannot proceed at 8.3%. Brand and compliance risk too high for a support product. Deferral to August 1 agreed. Beta continues with current 8 customers only.
+Natalie Osei: CS team needs customer communication template — will draft and circulate by May 21.
+
+VENDOR ESCALATION PLAN
+- Formal breach notice sent today (May 19) via certified email and account portal
+- 14-day window for VectorMind to submit performance improvement plan
+- Executive call booked May 26: Damon, Sandra, VectorMind VP Customer Success
+- If no satisfactory PIP received by June 2: initiate contract termination clause evaluation
+- Backup provider shortlist (2 vendors) to be evaluated in parallel regardless
+
+BACKUP PROVIDER EVALUATION
+Criteria agreed: <3% hallucination on standard benchmark, <500ms p95 latency, SOC 2 Type II certified, enterprise SLA with financial penalties, migration path from VectorMind fine-tuned model.
+Marcus to run technical evaluation. Results expected June 6.
+
+TRAINING DATA AUGMENTATION
+Damon: 12,000 additional annotated support tickets sourced from CS team. Will be used regardless of vendor outcome to improve model quality. Timeline: 3 weeks for annotation, 2 weeks for fine-tuning.`,
+        actionItems:[3,7]
+      },
+      {
+        id:4,
+        title:'CustomerOS CRM Replacement — Steering Committee Update',
+        date:'2026-05-16',
+        type:'Steering Committee',
+        project:'CustomerOS CRM Replacement',
+        facilitator:'Anika Patel',
+        attendees:'Sandra Holloway (CPO), Tyler Marsh (VP Sales), Cassandra Yuen (CFO), Anika Patel, Data Engineering Lead',
+        status:'Completed',
+        notes:`AGENDA
+1. Field mapping audit findings
+2. Phased migration proposal overview
+3. Budget impact
+4. Revised timeline options
+5. Decisions required
+
+FIELD MAPPING AUDIT FINDINGS (Anika Patel)
+Salesforce export contained 3,200 undocumented custom fields not included in the original data dictionary. Fields were created over 8 years by various sales ops teams without documentation. Categorization complete:
+- 840 fields: Active use, high priority for migration
+- 1,100 fields: Occasional use, migrate in Phase 2
+- 1,260 fields: Unused or deprecated — recommend archival not migration
+
+Original migration plan assumed 650 standard fields. Actual scope is 4.9x larger for Phase 1 targets.
+
+PHASED MIGRATION PROPOSAL
+Phase 1 (June 27 — original date): Migrate top 800 priority accounts with 840 high-priority fields only. Sales team continues with Salesforce for remaining accounts.
+Phase 2 (July 25 — new date): Migrate next 3,000 accounts with 1,100 occasional-use fields.
+Phase 3 (September 18): Full cutover of all 12,400 accounts. Salesforce contract expires September 30 — maintains cost saving target.
+
+BUDGET IMPACT (Cassandra Yuen questions)
+- Data engineering augmentation: +$35,000 (approved under PM authority threshold)
+- Overall budget: $680,000 planned vs $420,000 spent. Headroom sufficient for revised scope.
+- Salesforce license saving: Unchanged at $840,000 annually from October 1.
+
+STAKEHOLDER REACTIONS
+Tyler Marsh (Sales): Sales team needs to know which accounts are on CustomerOS vs Salesforce during transition. Dual-system period is a risk for pipeline visibility. Wants weekly sync during Phase 1-2.
+Cassandra Yuen: Satisfied with budget position. Wants Phase 3 completion confirmed before September 30 contract expiry — non-negotiable.
+Sandra Holloway: Phased approach is pragmatic. Approves in principle subject to formal CR document.
+
+DECISIONS MADE
+- Phased migration approach approved in principle
+- Formal change request document required by May 30 for official committee approval
+- Weekly sales sync during transition period confirmed (Tyler Marsh / Anika Patel)
+- Data engineering team augmentation already proceeding under PM authority
+
+NEXT STEPS
+Anika Patel to deliver Change Request document by May 30.
+DataBridge ETL renegotiation to be completed by May 28.`,
+        actionItems:[5]
+      },
+      {
+        id:5,
+        title:'Self-Serve Onboarding Portal — Go-Live Readiness Review',
+        date:'2026-05-20',
+        type:'Go-Live Review',
+        project:'Self-Serve Onboarding Portal',
+        facilitator:'Priya Nair',
+        attendees:'Priya Nair, Natalie Osei (VP CS), Engineering Lead, QA Lead, Marketing Manager, CS Ops',
+        status:'Completed',
+        notes:`PURPOSE
+Final readiness gate review before June 2 production go-live.
+
+UAT RESULTS SUMMARY
+100 acceptance criteria evaluated. 94 passed. 6 open items — all cosmetic, no functional blockers.
+
+Open items:
+1. Tooltip copy on Step 3 of onboarding wizard — grammar update needed
+2. Favicon not rendering on Safari iOS 17 — CSS fix identified, 30 min effort
+3. Cookie consent banner Z-index issue on mobile viewport <380px — fix in progress
+4. "Back" button label inconsistency — 3 screens say "Previous", should be "Back"
+5. Email confirmation subject line — legal requested minor wording change
+6. Loading spinner missing on slow connection simulation — UX only, no functional impact
+
+All 6 will be resolved by May 29. Post-launch patch release scheduled June 9 as backstop.
+
+HYPERCARE PLAN (Natalie Osei)
+- 2 dedicated CS agents on hypercare rotation for 4 weeks post go-live
+- Escalation runbook distributed to CS team
+- Slack channel #self-serve-hypercare created — all Go/No-Go stakeholders added
+- Daily 9am check-in for first 2 weeks, moving to weekly after
+- Success metric: 50% of new SMB signups completing onboarding without CS contact within 30 days
+
+INFRASTRUCTURE READINESS (Engineering Lead)
+- Load testing completed: 500 concurrent users, zero errors
+- Auto-scaling configured: triggers at 70% CPU — tested and verified
+- Monitoring dashboards live: Datadog alerts configured for error rate >1%, p99 latency >3s
+- Rollback plan: feature flag toggle — instant revert to previous flow if critical issue detected
+
+GO / NO-GO VOTE
+Priya Nair: Go
+Engineering Lead: Go
+QA Lead: Go (pending 6 cosmetic items)
+Natalie Osei: Go
+Marketing: Go
+
+CONFIRMED: June 2 go-live proceeding.
+
+COMMUNICATIONS PLAN
+- Internal announcement: May 28 all-hands mention
+- Customer email: June 2 morning (8am EST) — template approved
+- Blog post: June 2 — draft approved, scheduled
+- Social media: June 2 — 3 posts scheduled across channels`,
+        actionItems:[6]
+      },
+      {
+        id:6,
+        title:'DevSecOps Pipeline — Pen Test Firm Substitution Review',
+        date:'2026-05-21',
+        type:'Risk Review',
+        project:'DevSecOps Pipeline Modernization',
+        facilitator:'Jordan Kim',
+        attendees:'Jordan Kim, CISO Representative, Procurement, Legal',
+        status:'Completed',
+        notes:`CONTEXT
+Original pen test firm (CyberVerify Ltd) confirmed unavailability for June 2 window on May 20. Alternative required to preserve June 6 go-live date. One-day turnaround required.
+
+ALTERNATIVE FIRM EVALUATION
+Three firms contacted May 20. One available for June 2:
+
+SecureProbe Ltd (recommended)
+- CREST certification: Confirmed (CRT-PEN-2024-0847)
+- Available: June 2-3 (2-day assessment)
+- Scope: OWASP Top 10 + CI/CD pipeline specific assessment
+- Report delivery: June 10 (5 business days)
+- Cost: £28,500 (~$35,800) — matches original contract value
+- References: 3 enterprise engagements in last 6 months, 2 in CI/CD specifically
+
+CISO REVIEW
+CREST certification equivalent to original firm. Scope matches requirements. No concerns with substitution. Approved verbally pending contract.
+
+PROCUREMENT FAST-TRACK
+Standard procurement cycle is 10 business days. Fast-track approval requested given timeline. CFO approval threshold is met — procurement director has authority. Approval expected May 22.
+
+CONTRACT TERMS
+Contract sent to legal May 21. No material changes from original SOW — same scope, similar commercial terms. Legal review estimated 24 hours.
+
+RISK IF NOT RESOLVED BY MAY 27
+Pen test cannot start June 2. Next available window for SecureProbe: June 16. This would push go-live from June 6 to June 20 — a 2-week slip. Engineering team confirmed: pipeline is ready, only blocker is pen test.
+
+DECISION
+Proceed with SecureProbe Ltd. Jordan to chase procurement and legal daily until signed.
+
+OUTCOME (updated May 22)
+Contract signed. SecureProbe confirmed for June 2. Go-live target June 6 preserved.`,
+        actionItems:[1,4]
+      },
+      {
+        id:7,
+        title:'Portfolio Budget Review — Q2 Variance Analysis',
+        date:'2026-05-15',
+        type:'Budget Review',
+        project:'Portfolio',
+        facilitator:'Rachel Torres',
+        attendees:'Rachel Torres, Cassandra Yuen (CFO), All Project Managers',
+        status:'Completed',
+        notes:`PURPOSE
+Monthly portfolio budget variance review for Cassandra Yuen. Q2 mid-point assessment.
+
+PORTFOLIO BUDGET SUMMARY
+Total portfolio planned: $5,702,000
+Total portfolio actual (Q2 mid): $3,099,000
+Overall burn rate: 54.3% of budget at 45% of elapsed time
+Assessment: Slightly ahead of plan — primary driver is AI GA deferral reducing compute costs.
+
+PROJECT-BY-PROJECT VARIANCE
+
+Nexus Platform Relaunch
+Planned: $1,800,000 | Actual: $1,020,000 | Variance: -$6,000 vs expected burn
+Note: Billing module contractor costs (+$40K) may materialize in Q3. Within tolerance.
+
+DataStream Analytics Engine
+Planned: $940,000 | Actual: $490,000 | Variance: -$75,000 vs expected (cloud compute 8% under)
+Note: Design partner beta adds minimal cost. On track.
+
+CustomerOS CRM Replacement
+Planned: $680,000 | Actual: $420,000 | Variance: +$35,000 unplanned (data engineering)
+Note: Phased migration approach may bring additional contractor costs. Monitoring.
+
+DevSecOps Pipeline Modernization
+Planned: $320,000 | Actual: $285,000 | Variance: On plan
+Note: Pen test substitution is cost-neutral. No budget impact.
+
+Multi-Tenant SaaS Infrastructure
+Planned: $750,000 | Actual: $395,000 | Variance: +$150,000 forecast (consultant + sprint extension)
+Note: Security finding adds ~$150K in unplanned costs. Still within overall portfolio contingency.
+
+AI-Assisted Support Automation
+Planned: $520,000 | Actual: $380,000 | Variance: -$60,000 (GA deferral reduces compute)
+Note: Backup provider evaluation adds $18K. Net positive variance maintained.
+
+Self-Serve Onboarding Portal
+Planned: $280,000 | Actual: $264,000 | Variance: On plan. Final sprint.
+
+Enterprise SSO & Identity Federation
+Planned: $410,000 | Actual: $245,000 | Variance: On plan
+
+CFO QUESTIONS AND RESPONSES
+Cassandra: What is the net portfolio impact of the multi-tenant security finding?
+Rachel: +$150K unplanned cost, absorbed within portfolio contingency. No additional funding request required.
+
+Cassandra: Will AI deferral create budget pressure in Q3 when GA does launch?
+Rachel: Q3 AI compute costs will be higher but offset by Q2 underspend. Net neutral for FY.
+
+Cassandra: CustomerOS — is the September 30 Salesforce contract expiry still protected?
+Anika: Yes. Phase 3 cutover confirmed September 18. 12-day buffer before contract expiry.
+
+DECISIONS
+- No budget reallocation required at this time
+- Monthly variance report to continue
+- Multi-Tenant $150K absorbed in contingency — no escalation to board required`,
+        actionItems:[10]
+      },
+      {
+        id:8,
+        title:'DataStream Analytics Engine — ML Model Evaluation Gate Review',
+        date:'2026-05-14',
+        type:'Technical Review',
+        project:'DataStream Analytics Engine',
+        facilitator:'Marcus Webb',
+        attendees:'Marcus Webb, Imani Diallo (Director Data Engineering), 3 Design Partner Customer Reps (TechVenture, Apex Corp, GridSoft)',
+        status:'Completed',
+        notes:`PURPOSE
+Mid-project ML model evaluation with design partner customers. Gate review to proceed to production evaluation phase.
+
+MODEL PERFORMANCE SUMMARY (8 test scenarios completed)
+Scenario coverage: Anomaly detection (3), Trend forecasting (3), Cohort analysis (2)
+Overall accuracy: 87.3% against labeled test data
+P95 inference latency: 142ms (target: <200ms) — PASS
+False positive rate: 4.1% (target: <5%) — PASS
+Edge case handling: 2 of 8 scenarios below threshold — see below
+
+BELOW-THRESHOLD SCENARIOS
+Scenario 4: Sparse time-series data (<10 data points per day) — accuracy 61% vs 85% target
+Scenario 7: Multi-currency revenue aggregation with mid-period FX changes — accuracy 72% vs 85% target
+
+Root cause analysis:
+- Scenario 4: Training data skewed toward high-frequency events. Need sparse-data augmentation.
+- Scenario 7: FX rate lookup integration missing from feature pipeline. Engineering fix required.
+
+DESIGN PARTNER FEEDBACK
+
+TechVenture: Anomaly detection results are impressive. Correctly flagged 3 real production anomalies in historical test data. Primary concern: can we integrate with our existing PagerDuty alerting? (Answer: Yes, webhook support in roadmap for Q3.)
+
+Apex Corp: Trend forecasting accuracy is commercially viable for their use case. Requesting 90-day lookback window (current: 60 days). Marcus: technically feasible, will add to backlog.
+
+GridSoft: Multi-currency scenario is a blocker for their use case. Need to resolve Scenario 7 before beta.
+
+DECISIONS
+- Proceed to expanded evaluation (15 scenarios as per updated plan)
+- Add 5 new scenarios: 3 addressing sparse data, 2 addressing multi-currency
+- FX rate integration added to Sprint 11 backlog (2-week effort)
+- GridSoft beta participation confirmed pending Scenario 7 resolution
+- Beta launch date July 25 maintained
+
+ACTION ITEMS
+Marcus to expand test suite to 15 scenarios by June 6.
+Engineering to deliver FX rate integration by June 20.
+Marcus to share updated evaluation results with design partners by July 11.`,
+        actionItems:[9]
+      }
+    ],
+
     nextId: {
       projects:9, stakeholders:9, escalations:6, capacity:10, risks:11, decisions:11,
       actionItems:13, milestones:13, dependencies:6, changeRequests:6, commsLog:9,
       lessonsLearned:6, budgets:9, velocityData:11, assumptions:7,
-      okrs:9, benefits:8, vendors:8
+      okrs:9, benefits:8, vendors:8, meetingNotes:9
     }
   },
 
